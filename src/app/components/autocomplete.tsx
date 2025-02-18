@@ -102,16 +102,19 @@ export const AutoComplete = ({
     setFocus(true);
   }, []);
 
-  const handleSelectOption = useCallback((selectedOption: Option) => {
-    setSelected(selectedOption);
-    setPlaceId?.(selectedOption.value);
+  const handleSelectOption = useCallback(
+    (selectedOption: Option) => {
+      setSelected(selectedOption);
+      setPlaceId?.(selectedOption.value);
 
-    // This is a hack to prevent the input from being focused after the user selects an option
-    // We can call this hack: "The next tick"
-    setTimeout(() => {
-      inputRef?.current?.blur();
-    }, 0);
-  }, []);
+      // This is a hack to prevent the input from being focused after the user selects an option
+      // We can call this hack: "The next tick"
+      setTimeout(() => {
+        inputRef?.current?.blur();
+      }, 0);
+    },
+    [setPlaceId]
+  );
 
   return (
     <CommandPrimitive onKeyDown={handleKeyDown} className="">
