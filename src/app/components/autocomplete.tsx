@@ -40,9 +40,14 @@ type Option = {
 type AutoCompleteProps = {
   disabled?: boolean;
   placeholder?: string;
+  setPlaceId?: (placeId: string) => void;
 };
 
-export const AutoComplete = ({ placeholder, disabled }: AutoCompleteProps) => {
+export const AutoComplete = ({
+  placeholder,
+  disabled,
+  setPlaceId,
+}: AutoCompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [isOpen, setOpen] = useState(false);
@@ -99,6 +104,7 @@ export const AutoComplete = ({ placeholder, disabled }: AutoCompleteProps) => {
 
   const handleSelectOption = useCallback((selectedOption: Option) => {
     setSelected(selectedOption);
+    setPlaceId?.(selectedOption.value);
 
     // This is a hack to prevent the input from being focused after the user selects an option
     // We can call this hack: "The next tick"

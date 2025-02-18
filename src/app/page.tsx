@@ -1,13 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@ui/card";
-import { Button } from "@ui/button";
-import { AutoComplete } from "./components/autocomplete";
+import { Card, CardDescription, CardHeader, CardTitle } from "@ui/card";
+import Search from "./search";
 
 export default async function Home() {
   return (
@@ -17,12 +9,7 @@ export default async function Home() {
           <CardTitle>Meet Me Halfway</CardTitle>
           <CardDescription>Enter you and your friends location</CardDescription>
         </CardHeader>
-        <CardContent>
-          <AutoComplete />
-        </CardContent>
-        <CardFooter>
-          <Button>Find a place to meet</Button>
-        </CardFooter>
+        <Search />
       </Card>
     </main>
   );
