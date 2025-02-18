@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@ui/card";
 import { Button } from "@ui/button";
-import { Input } from "./components/ui/input";
+import { AutoComplete } from "./components/autocomplete";
 
 export default async function Home() {
   return (
@@ -18,7 +18,7 @@ export default async function Home() {
           <CardDescription>Enter you and your friends location</CardDescription>
         </CardHeader>
         <CardContent>
-          <Input placeholder="Enter your location" />
+          <AutoComplete />
         </CardContent>
         <CardFooter>
           <Button>Find a place to meet</Button>
