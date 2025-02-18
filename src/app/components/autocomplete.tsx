@@ -32,42 +32,36 @@ const useAutocomplete = (input: string) =>
     },
   });
 
-export type Option = Record<"value" | "label", string> & Record<string, string>;
+type Option = {
+  value: string;
+  label: string;
+};
 
 type AutoCompleteProps = {
-  value?: Option;
-  onValueChange?: (value: Option) => void;
   disabled?: boolean;
   placeholder?: string;
 };
 
-export const AutoComplete = ({
-  placeholder,
-  value,
-  onValueChange,
-  disabled,
-}: AutoCompleteProps) => {
+export const AutoComplete = ({ placeholder, disabled }: AutoCompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const emptyMessage = "No results found";
-
   const [isOpen, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option>(value as Option);
-  const [inputValue, setInputValue] = useState<string>(value?.label || "");
-  const [currentInput, setCurrentInput] = useState<string>("");
+  const [focus, setFocus] = useState(false);
 
-  const { data, isLoading } = useAutocomplete(currentInput);
+  const [search, setSearch] = useState<string>("");
+  const [selected, setSelected] = useState<Option>();
+
+  const { data, isLoading } = useAutocomplete(search);
 
   const options = useMemo(() => data ?? [], [data]);
 
+  const emptyMessage = "No results found";
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
       const input = inputRef.current;
       if (!input) {
         return;
       }
-
-      setCurrentInput(input.value);
 
       // Keep the options displayed when the user is typing
       if (!isOpen) {
@@ -81,7 +75,6 @@ export const AutoComplete = ({
         );
         if (optionToSelect) {
           setSelected(optionToSelect);
-          onValueChange?.(optionToSelect);
         }
       }
 
@@ -89,39 +82,40 @@ export const AutoComplete = ({
         input.blur();
       }
     },
-    [isOpen, options, onValueChange]
+    [isOpen, options]
   );
 
   const handleBlur = useCallback(() => {
     setOpen(false);
-    setInputValue(selected?.label);
+    setFocus(false);
+
+    if (selected) setSearch(selected.label);
   }, [selected]);
 
-  const handleSelectOption = useCallback(
-    (selectedOption: Option) => {
-      setInputValue(selectedOption.label);
+  const handleFocus = useCallback(() => {
+    setOpen(true);
+    setFocus(true);
+  }, []);
 
-      setSelected(selectedOption);
-      onValueChange?.(selectedOption);
+  const handleSelectOption = useCallback((selectedOption: Option) => {
+    setSelected(selectedOption);
 
-      // This is a hack to prevent the input from being focused after the user selects an option
-      // We can call this hack: "The next tick"
-      setTimeout(() => {
-        inputRef?.current?.blur();
-      }, 0);
-    },
-    [onValueChange]
-  );
+    // This is a hack to prevent the input from being focused after the user selects an option
+    // We can call this hack: "The next tick"
+    setTimeout(() => {
+      inputRef?.current?.blur();
+    }, 0);
+  }, []);
 
   return (
     <CommandPrimitive onKeyDown={handleKeyDown} className="">
       <div>
         <CommandInput
           ref={inputRef}
-          value={inputValue}
-          onValueChange={isLoading ? undefined : setInputValue}
+          value={focus ? search : selected?.label ?? search}
+          onValueChange={(s) => setSearch(s)}
           onBlur={handleBlur}
-          onFocus={() => setOpen(true)}
+          onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
           className="text-base"
@@ -138,8 +132,9 @@ export const AutoComplete = ({
             {isLoading ? (
               <CommandPrimitive.Loading>
                 <div className="p-1">
-                  <Skeleton className="h-8 w-full" />
-                  <p>Loading...</p>
+                  <Skeleton className="h-8 w-full">
+                    <p>Loading...</p>
+                  </Skeleton>
                 </div>
               </CommandPrimitive.Loading>
             ) : null}
