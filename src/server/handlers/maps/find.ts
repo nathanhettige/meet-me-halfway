@@ -101,7 +101,7 @@ const handler = publicProcedure
           "Content-Type": "application/json",
           "X-Goog-Api-Key": process.env.MAPS_API_KEY as string,
           "X-Goog-FieldMask":
-            "places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions",
+            "places.id,places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions",
         },
         body: JSON.stringify({
           locationRestriction: {
@@ -119,6 +119,7 @@ const handler = publicProcedure
 
     const placesData = (await places.json()) as {
       places: Array<{
+        id: string;
         formattedAddress: string;
         rating: number;
         googleMapsUri: string;
