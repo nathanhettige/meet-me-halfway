@@ -93,8 +93,6 @@ const handler = publicProcedure
 
     const midpoint = calculateMidpoint(coordinates);
 
-    console.log("midpoint", `${midpoint.latitude},${midpoint.longitude}`);
-
     const places = await fetch(
       "https://places.googleapis.com/v1/places:searchNearby",
       {
