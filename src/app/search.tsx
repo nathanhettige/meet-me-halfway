@@ -4,8 +4,29 @@ import { useState } from "react";
 import { AutoComplete } from "./components/autocomplete";
 import { CardContent, CardFooter } from "./components/ui/card";
 import { Button } from "./components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { client } from "@/lib/client";
+import { useRouter } from "next/navigation";
+
+const useFindPlaces = () => {
+  const router = useRouter();
+  return useMutation({
+    mutationKey: ["findPlaces"],
+    mutationFn: async (placeIds: string[]) => {
+      const res = await client.maps.find.$get({
+        inputs: placeIds,
+      });
+      const data = await res.json();
+      return data;
+    },
+    onSuccess: () => {
+      router.push("/places");
+    },
+  });
+};
 
 const Search = () => {
+  const findMidpoint = useFindPlaces();
   const [placeIds, setPlaceIds] = useState<string[]>(["", ""]);
 
   const handleChange = (index: number, value: string) => {
@@ -17,7 +38,7 @@ const Search = () => {
   };
 
   const onSubmit = () => {
-    console.log(placeIds);
+    findMidpoint.mutate(placeIds);
   };
 
   return (
