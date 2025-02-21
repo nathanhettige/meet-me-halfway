@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { HTTPException } from "hono/http-exception";
 import { PropsWithChildren, useState } from "react";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const Providers = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(
@@ -23,6 +24,9 @@ export const Providers = ({ children }: PropsWithChildren) => {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 };
