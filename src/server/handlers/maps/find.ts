@@ -101,22 +101,35 @@ const handler = publicProcedure
           "Content-Type": "application/json",
           "X-Goog-Api-Key": process.env.MAPS_API_KEY as string,
           "X-Goog-FieldMask":
-            "places.id,places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions",
+            "places.id,places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions,places.types",
         },
         body: JSON.stringify({
+          includedTypes: [
+            "restaurant",
+            "cafe",
+            "bar",
+            "bakery",
+            "shopping_mall",
+            "movie_theater",
+            "museum",
+            "art_gallery",
+            "amusement_park",
+            "night_club",
+            "tourist_attraction",
+            "bowling_alley",
+          ],
           locationRestriction: {
             circle: {
               center: {
                 latitude: midpoint.latitude,
                 longitude: midpoint.longitude,
               },
-              radius: 500.0, // 500 meters
+              radius: 1000.0, // 1km
             },
           },
         }),
       }
     );
-
     const placesData = (await places.json()) as {
       places: Array<{
         id: string;
@@ -130,8 +143,11 @@ const handler = publicProcedure
         currentOpeningHours: {
           weekdayDescriptions: string[];
         };
+        types: string[];
       }>;
     };
+
+    // See the driving time to each place and adjust midpoint
 
     return c.superjson(placesData);
   });
