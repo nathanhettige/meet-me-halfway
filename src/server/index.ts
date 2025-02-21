@@ -1,6 +1,7 @@
 import { j } from "./jstack"
 import { mapsRouter } from "./routers/maps-router.";
 import { postRouter } from "./routers/post-router";
+import type { InferRouterInputs, InferRouterOutputs } from "jstack";
 
 /**
  * This is your base API.
@@ -23,6 +24,9 @@ const appRouter = j.mergeRouters(api, {
   maps: mapsRouter,
 });
 
-export type AppRouter = typeof appRouter
+export type AppRouter = typeof appRouter;
 
-export default appRouter
+export type InferInput = InferRouterInputs<AppRouter>;
+export type InferOutput = InferRouterOutputs<AppRouter>;
+
+export default appRouter;
