@@ -15,7 +15,7 @@ import { z } from "zod";
 //     Calculate travel times and scores for each cafe.
 //     Display results on the map.
 
-type Coordinates = {
+export type Coordinates = {
   latitude: number;
   longitude: number;
 };
@@ -132,7 +132,7 @@ const handler = publicProcedure
     );
 
     const placesData = (await places.json()) as {
-      places: Array<{
+      places?: Array<{
         id: string;
         formattedAddress: string;
         rating: number;
@@ -148,7 +148,13 @@ const handler = publicProcedure
       }>;
     };
 
-    if (placesData.places.length === 0) throw new Error("No places found");
+    if (!placesData.places)
+      // Return markers for debugging purposes
+      return c.superjson({
+        coordinates: coordinates,
+        midpoint: midpoint,
+        places: [],
+      });
 
     const bestPlace = placesData.places[0]!;
 
@@ -220,7 +226,11 @@ const handler = publicProcedure
     );
     console.log(travelData);
 
-    return c.superjson(placesData);
+    return c.superjson({
+      coordinates: coordinates,
+      midpoint: midpoint,
+      places: placesData.places,
+    });
   });
 
 export default handler;

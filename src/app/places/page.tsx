@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardContent,
 } from "@ui/card";
+import MarkerMap from "../components/markerMap";
 
 const Places = () => {
   const router = useRouter();
@@ -34,18 +35,21 @@ const Places = () => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
-      {latest.places.map((place) => (
-        <Card key={place.id} className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>{place.displayName.text}</CardTitle>
-            <CardDescription>{place.formattedAddress}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">Rating: {place.rating} ⭐</p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="grid grid-cols-[auto_1fr]">
+      <div className="flex flex-col items-center gap-4 p-4">
+        {latest.places.map((place) => (
+          <Card key={place.id} className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>{place.displayName.text}</CardTitle>
+              <CardDescription>{place.formattedAddress}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">Rating: {place.rating} ⭐</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <MarkerMap coordinates={latest.coordinates} midpoint={latest.midpoint} />
     </div>
   );
 };
