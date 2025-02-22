@@ -130,6 +130,7 @@ const handler = publicProcedure
         }),
       }
     );
+
     const placesData = (await places.json()) as {
       places: Array<{
         id: string;
@@ -147,7 +148,72 @@ const handler = publicProcedure
       }>;
     };
 
+    if (placesData.places.length === 0) throw new Error("No places found");
+
+    const bestPlace = placesData.places[0]!;
+
     // See the driving time to each place and adjust midpoint
+    const routes = await fetch(
+      "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": process.env.MAPS_API_KEY!,
+          "X-Goog-FieldMask": "*",
+        },
+        body: JSON.stringify({
+          origins: input.inputs.map((id) => ({
+            waypoint: {
+              placeId: id,
+            },
+            routeModifiers: {
+              avoidTolls: false,
+              avoidHighways: false,
+              avoidFerries: false,
+            },
+          })),
+          destinations: [
+            {
+              waypoint: {
+                placeId: bestPlace.id,
+              },
+            },
+          ],
+          travelMode: "DRIVE",
+          routingPreference: "TRAFFIC_AWARE",
+        }),
+      }
+    );
+
+    const routesData = (await routes.json()) as {
+      originIndex: number;
+      destinationIndex: number;
+      distanceMeters: number;
+      duration: string;
+      condition: string;
+      status: Record<string, never>;
+    }[];
+
+    console.log(routesData);
+
+    const travelData = input.inputs.map((id, index) => ({
+      id,
+      travelTime: routesData.find((x) => x.originIndex === index)?.duration,
+    }));
+
+    // Convert duration strings (like "1234s") to numbers by removing 's' and parsing
+    const travelTimes = travelData.map((data) =>
+      parseInt(data.travelTime?.replace("s", "") || "0")
+    );
+
+    // Calculate percentage difference between travel times
+    const maxTime = Math.max(...travelTimes);
+    const minTime = Math.min(...travelTimes);
+    const percentageDiff = ((maxTime - minTime) / minTime) * 100;
+
+    console.log(`Travel time difference: ${percentageDiff.toFixed(2)}%`);
+    console.log(travelData);
 
     return c.superjson(placesData);
   });
