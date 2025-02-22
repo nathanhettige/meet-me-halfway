@@ -211,8 +211,13 @@ const handler = publicProcedure
     const maxTime = Math.max(...travelTimes);
     const minTime = Math.min(...travelTimes);
     const percentageDiff = ((maxTime - minTime) / minTime) * 100;
+    const diff = maxTime - minTime;
 
-    console.log(`Travel time difference: ${percentageDiff.toFixed(2)}%`);
+    console.log(
+      `Travel time difference: ${percentageDiff.toFixed(2)}% - ${Math.floor(
+        diff / 60
+      )}m ${diff % 60}s`
+    );
     console.log(travelData);
 
     return c.superjson(placesData);

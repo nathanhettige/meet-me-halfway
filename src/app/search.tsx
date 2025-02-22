@@ -27,7 +27,7 @@ const useFindPlaces = () => {
 
 const Search = () => {
   const findMidpoint = useFindPlaces();
-  const [placeIds, setPlaceIds] = useState<string[]>(["", ""]);
+  const [placeIds, setPlaceIds] = useState<string[]>(["", "", ""]);
 
   const handleChange = (index: number, value: string) => {
     setPlaceIds((prev) => {
