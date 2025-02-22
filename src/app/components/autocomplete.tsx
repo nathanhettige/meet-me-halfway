@@ -21,6 +21,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/lib/client";
+import { Spinner } from "./ui/spinner";
 
 const useAutocomplete = (input: string) =>
   useQuery({
@@ -141,8 +142,8 @@ export const AutoComplete = ({
             {isLoading ? (
               <CommandPrimitive.Loading>
                 <div className="p-1">
-                  <Skeleton className="h-8 w-full">
-                    <p>Loading...</p>
+                  <Skeleton className="h-8 w-full flex items-center justify-center">
+                    <Spinner size={"small"} />
                   </Skeleton>
                 </div>
               </CommandPrimitive.Loading>

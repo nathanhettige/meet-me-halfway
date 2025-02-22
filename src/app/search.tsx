@@ -43,7 +43,7 @@ const Search = () => {
 
   return (
     <>
-      <CardContent>
+      <CardContent className="space-y-2">
         {placeIds.map((l, idx) => (
           <AutoComplete
             key={idx}
