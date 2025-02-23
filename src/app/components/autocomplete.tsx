@@ -17,11 +17,12 @@ import {
 
 import { Skeleton } from "@ui/skeleton";
 
-import { Check } from "lucide-react";
+import { Check, Delete } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { Spinner } from "./ui/spinner";
+import { Button } from "./ui/button";
 
 const useAutocomplete = (input: string) =>
   useQuery({
@@ -42,12 +43,14 @@ type AutoCompleteProps = {
   disabled?: boolean;
   placeholder?: string;
   setPlaceId?: (placeId: string) => void;
+  onDelete?: () => void;
 };
 
 export const AutoComplete = ({
   placeholder,
   disabled,
   setPlaceId,
+  onDelete,
 }: AutoCompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -118,69 +121,76 @@ export const AutoComplete = ({
   );
 
   return (
-    <CommandPrimitive onKeyDown={handleKeyDown} className="">
-      <div>
-        <CommandInput
-          ref={inputRef}
-          value={focus ? search : selected?.label ?? search}
-          onValueChange={(s) => setSearch(s)}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="text-base"
-        />
-      </div>
-      <div className="relative mt-1">
-        <div
-          className={cn(
-            "animate-in fade-in-0 zoom-in-95 absolute top-0 z-10 w-full rounded-xl bg-white outline-none",
-            isOpen ? "block" : "hidden"
-          )}
-        >
-          <CommandList className="rounded-lg ring-1 ring-slate-200">
-            {isLoading ? (
-              <CommandPrimitive.Loading>
-                <div className="p-1">
-                  <Skeleton className="h-8 w-full flex items-center justify-center">
-                    <Spinner size={"small"} />
-                  </Skeleton>
-                </div>
-              </CommandPrimitive.Loading>
-            ) : null}
-            {options.length > 0 && !isLoading ? (
-              <CommandGroup>
-                {options.map((option) => {
-                  const isSelected = selected?.value === option.value;
-                  return (
-                    <CommandItem
-                      key={option.value}
-                      value={option.label}
-                      onMouseDown={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                      }}
-                      onSelect={() => handleSelectOption(option)}
-                      className={cn(
-                        "flex w-full items-center gap-2",
-                        !isSelected ? "pl-8" : null
-                      )}
-                    >
-                      {isSelected ? <Check className="w-4" /> : null}
-                      {option.label}
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            ) : null}
-            {!isLoading ? (
-              <CommandPrimitive.Empty className="select-none rounded-sm px-2 py-3 text-center text-sm">
-                {emptyMessage}
-              </CommandPrimitive.Empty>
-            ) : null}
-          </CommandList>
+    <div className="flex w-full gap-2">
+      <CommandPrimitive onKeyDown={handleKeyDown} className="w-full">
+        <div>
+          <CommandInput
+            ref={inputRef}
+            value={focus ? search : selected?.label ?? search}
+            onValueChange={(s) => setSearch(s)}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            placeholder={placeholder}
+            disabled={disabled}
+            className="text-base"
+          />
         </div>
-      </div>
-    </CommandPrimitive>
+        <div className="relative mt-1">
+          <div
+            className={cn(
+              "animate-in fade-in-0 zoom-in-95 absolute top-0 z-10 w-full rounded-xl bg-white outline-none",
+              isOpen ? "block" : "hidden"
+            )}
+          >
+            <CommandList className="rounded-lg ring-1 ring-slate-200">
+              {isLoading ? (
+                <CommandPrimitive.Loading>
+                  <div className="p-1">
+                    <Skeleton className="h-8 w-full flex items-center justify-center">
+                      <Spinner size={"small"} />
+                    </Skeleton>
+                  </div>
+                </CommandPrimitive.Loading>
+              ) : null}
+              {options.length > 0 && !isLoading ? (
+                <CommandGroup>
+                  {options.map((option) => {
+                    const isSelected = selected?.value === option.value;
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        value={option.label}
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                        }}
+                        onSelect={() => handleSelectOption(option)}
+                        className={cn(
+                          "flex w-full items-center gap-2",
+                          !isSelected ? "pl-8" : null
+                        )}
+                      >
+                        {isSelected ? <Check className="w-4" /> : null}
+                        {option.label}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              ) : null}
+              {!isLoading ? (
+                <CommandPrimitive.Empty className="select-none rounded-sm px-2 py-3 text-center text-sm">
+                  {emptyMessage}
+                </CommandPrimitive.Empty>
+              ) : null}
+            </CommandList>
+          </div>
+        </div>
+      </CommandPrimitive>
+      {!!onDelete && (
+        <Button size="icon" variant="outline" onClick={onDelete}>
+          <Delete />
+        </Button>
+      )}
+    </div>
   );
 };
