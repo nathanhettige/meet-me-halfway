@@ -49,7 +49,13 @@ const Places = () => {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Iterations Required:</span>
-              <span className="text-sm">{latest.performance.iterations}</span>
+              <span className="text-sm">{latest.iterations.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Found on Iteration:</span>
+              <span className="text-sm">
+                {latest.performance.foundOnIteration}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">

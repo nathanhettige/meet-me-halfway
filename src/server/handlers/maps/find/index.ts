@@ -57,7 +57,11 @@ const handler = publicProcedure
     // Iteratively search for better midpoint
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const places = await fetchSearchNearby(currentMidpoint);
-      if (places.length === 0) continue;
+      if (places.length === 0) {
+        // TODO: Adjust search radius or move towards nearest populated area
+        console.log(`Iteration ${i + 1}: No places found near midpoint`);
+        continue;
+      }
 
       const routes = await fetchRouteMatrix(input.inputs, places[0]!.id);
       const travelTimes = input.inputs.map((_, index) =>
@@ -135,7 +139,7 @@ const handler = publicProcedure
       places: finalPlaces,
       iterations: iterations,
       performance: {
-        iterations: bestIterationNumber,
+        foundOnIteration: bestIterationNumber,
         timeDifference: minTimeDifference,
         percentageDiff: Math.min(...iterations.map((i) => i.percentageDiff)),
       },
