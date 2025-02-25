@@ -51,7 +51,7 @@ const handler = publicProcedure
     let bestMidpoint = currentMidpoint;
     let minTimeDifference = Infinity;
     const MAX_ITERATIONS = 10;
-    const MAX_TIME_DIFF_SECONDS = 120; // 2 minutes
+    const MAX_TIME_DIFF_SECONDS = 30; // 30 seconds
     const MAX_PERCENTAGE_DIFF = 5; // 5%
 
     // Iteratively search for better midpoint
@@ -140,8 +140,8 @@ const handler = publicProcedure
       iterations: iterations,
       performance: {
         foundOnIteration: bestIterationNumber,
-        timeDifference: minTimeDifference,
-        percentageDiff: Math.min(...iterations.map((i) => i.percentageDiff)),
+        timeDifference: iterations[bestIterationNumber - 1]?.timeDifference,
+        percentageDiff: iterations[bestIterationNumber - 1]?.percentageDiff,
       },
     });
   });
