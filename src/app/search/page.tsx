@@ -15,20 +15,7 @@ import { Spinner } from "../components/ui/spinner";
 
 const Places = () => {
   const searchParams = useSearchParams();
-  const search = useSearch();
-
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!search.isIdle) return;
-    const placeIds = searchParams.get("placeIds")?.split(",") || [];
-
-    if (placeIds.length > 0) {
-      search.mutate(placeIds);
-    } else {
-      router.push("/");
-    }
-  }, [router, search, searchParams]);
+  const search = useSearch(searchParams.get("placeIds")?.split(",") || []);
 
   if (!search.data) {
     return (

@@ -1,10 +1,11 @@
 import { client } from "@/lib/client";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-const useSearch = () =>
-  useMutation({
-    mutationKey: ["findPlaces"],
-    mutationFn: async (placeIds: string[]) => {
+const useSearch = (placeIds: string[]) =>
+  useQuery({
+    enabled: placeIds.length > 0,
+    queryKey: ["findPlaces", placeIds],
+    queryFn: async () => {
       const res = await client.maps.search.$get({
         inputs: placeIds,
       });
