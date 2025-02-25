@@ -60,6 +60,11 @@ const MarkerMap = ({
         <Marker
           key={index}
           position={{ lat: iter.latitude, lng: iter.longitude }}
+          label={{
+            text: (index + 1).toString(),
+            color: "#000000",
+            fontSize: "12px",
+          }}
           icon={{
             path: google.maps.SymbolPath.CIRCLE,
             fillColor: "#00FF00",
