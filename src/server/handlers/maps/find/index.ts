@@ -24,64 +24,121 @@ export type Coordinates = {
   longitude: number;
 };
 
+export type IterationResult = {
+  midpoint: Coordinates;
+  timeDifference: number;
+  percentageDiff: number;
+  isBest: boolean;
+  iteration: number;
+};
+
 const handler = publicProcedure
   .input(z.object({ inputs: z.array(z.string()) }))
   .query(async ({ c, input }) => {
     const coordinates: Coordinates[] = [];
+    const iterations: IterationResult[] = [];
+    let bestIterationNumber = 1;
 
     for (const placeId of input.inputs) {
       const data = await fetchPlaceDetails(placeId);
-
       coordinates.push({
         latitude: data.location.latitude,
         longitude: data.location.longitude,
       });
     }
 
-    const midpoint = calculateMidpoint(coordinates);
+    let currentMidpoint = calculateMidpoint(coordinates);
+    let bestMidpoint = currentMidpoint;
+    let minTimeDifference = Infinity;
+    const MAX_ITERATIONS = 10;
+    const MAX_TIME_DIFF_SECONDS = 120; // 2 minutes
+    const MAX_PERCENTAGE_DIFF = 5; // 5%
 
-    const places = await fetchSearchNearby(midpoint);
+    // Iteratively search for better midpoint
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
+      const places = await fetchSearchNearby(currentMidpoint);
+      if (places.length === 0) continue;
 
-    if (places.length === 0)
-      // Return markers for debugging purposes
-      return c.superjson({
-        coordinates: coordinates,
-        midpoint: midpoint,
-        places: [],
+      const routes = await fetchRouteMatrix(input.inputs, places[0]!.id);
+      const travelTimes = input.inputs.map((_, index) =>
+        parseInt(
+          routes
+            .find((x) => x.originIndex === index)
+            ?.duration?.replace("s", "") || "0"
+        )
+      );
+
+      const maxTime = Math.max(...travelTimes);
+      const minTime = Math.min(...travelTimes);
+      const timeDifference = maxTime - minTime;
+      const percentageDiff = ((maxTime - minTime) / minTime) * 100;
+
+      console.log(
+        `Iteration ${i + 1}: Time diff: ${Math.floor(timeDifference / 60)}m ${
+          timeDifference % 60
+        }s (${percentageDiff.toFixed(2)}%)`
+      );
+
+      iterations.push({
+        midpoint: { ...currentMidpoint },
+        timeDifference,
+        percentageDiff,
+        isBest: false,
+        iteration: i + 1,
       });
 
-    const bestPlace = places[0]!;
+      // Stop if we've reached acceptable thresholds
+      if (
+        timeDifference <= MAX_TIME_DIFF_SECONDS ||
+        percentageDiff <= MAX_PERCENTAGE_DIFF
+      ) {
+        bestMidpoint = currentMidpoint;
+        bestIterationNumber = i + 1;
+        break;
+      }
 
-    // See the driving time to each place and adjust midpoint
-    const routes = await fetchRouteMatrix(input.inputs, bestPlace.id);
+      // If we found a better midpoint, save it
+      if (timeDifference < minTimeDifference) {
+        minTimeDifference = timeDifference;
+        bestMidpoint = currentMidpoint;
+        bestIterationNumber = i + 1;
+      }
 
-    const travelData = input.inputs.map((id, index) => ({
-      id,
-      travelTime: routes.find((x) => x.originIndex === index)?.duration,
-    }));
+      // Adjust midpoint towards the location with longer travel time
+      const maxTimeIndex = travelTimes.indexOf(maxTime);
+      currentMidpoint = {
+        latitude:
+          (currentMidpoint.latitude * (1 + percentageDiff / 100) +
+            coordinates[maxTimeIndex]!.latitude) /
+          (2 + percentageDiff / 100),
+        longitude:
+          (currentMidpoint.longitude * (1 + percentageDiff / 100) +
+            coordinates[maxTimeIndex]!.longitude) /
+          (2 + percentageDiff / 100),
+      };
+    }
 
-    // Convert duration strings (like "1234s") to numbers by removing 's' and parsing
-    const travelTimes = travelData.map((data) =>
-      parseInt(data.travelTime?.replace("s", "") || "0")
+    // Mark the best iteration at the end
+    const bestIteration = iterations.find(
+      (iter) => iter.iteration === bestIterationNumber
     );
+    if (bestIteration) {
+      bestIteration.isBest = true;
+    }
 
-    // Calculate percentage difference between travel times
-    const maxTime = Math.max(...travelTimes);
-    const minTime = Math.min(...travelTimes);
-    const percentageDiff = ((maxTime - minTime) / minTime) * 100;
-    const diff = maxTime - minTime;
-
-    console.log(
-      `Travel time difference: ${percentageDiff.toFixed(2)}% - ${Math.floor(
-        diff / 60
-      )}m ${diff % 60}s`
-    );
-    console.log(travelData);
+    // Use the best midpoint found for final search
+    const finalPlaces = await fetchSearchNearby(bestMidpoint);
 
     return c.superjson({
       coordinates: coordinates,
-      midpoint: midpoint,
-      places: places,
+      midpoint: bestMidpoint,
+      places: finalPlaces,
+      iterations: iterations,
+      performance: {
+        iterations: bestIterationNumber,
+        timeDifference: minTimeDifference,
+        percentageDiff: Math.min(...iterations.map((i) => i.percentageDiff)),
+      },
     });
   });
 

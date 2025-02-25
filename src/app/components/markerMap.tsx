@@ -6,9 +6,11 @@ import { Coordinates } from "@/server/handlers/maps/find";
 const MarkerMap = ({
   coordinates,
   midpoint,
+  iterations,
 }: {
   coordinates: Coordinates[];
   midpoint: Coordinates;
+  iterations: Coordinates[];
 }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -52,6 +54,19 @@ const MarkerMap = ({
         <Marker
           key={index}
           position={{ lat: coord.latitude, lng: coord.longitude }}
+        />
+      ))}
+      {iterations.map((iter, index) => (
+        <Marker
+          key={index}
+          position={{ lat: iter.latitude, lng: iter.longitude }}
+          icon={{
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: "#00FF00",
+            fillOpacity: 1,
+            strokeWeight: 0,
+            scale: 8,
+          }}
         />
       ))}
     </GoogleMap>

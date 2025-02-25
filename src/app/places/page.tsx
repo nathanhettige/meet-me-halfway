@@ -34,9 +34,40 @@ const Places = () => {
     return null;
   }
 
+  const iterations = latest.iterations.map((iter) => iter.midpoint);
+
   return (
     <div className="grid grid-cols-[auto_1fr]">
       <div className="flex flex-col items-center gap-4 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Search Performance</CardTitle>
+            <CardDescription>
+              How we found your perfect midpoint
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Iterations Required:</span>
+              <span className="text-sm">{latest.performance.iterations}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                Travel Time Difference:
+              </span>
+              <span className="text-sm">
+                {Math.floor(latest.performance.timeDifference / 60)}m{" "}
+                {latest.performance.timeDifference % 60}s
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Time Difference %:</span>
+              <span className="text-sm">
+                {latest.performance.percentageDiff.toFixed(1)}%
+              </span>
+            </div>
+          </CardContent>
+        </Card>
         {latest.places.map((place) => (
           <Card key={place.id} className="w-full max-w-md">
             <CardHeader>
@@ -49,7 +80,11 @@ const Places = () => {
           </Card>
         ))}
       </div>
-      <MarkerMap coordinates={latest.coordinates} midpoint={latest.midpoint} />
+      <MarkerMap
+        coordinates={latest.coordinates}
+        midpoint={latest.midpoint}
+        iterations={iterations}
+      />
     </div>
   );
 };
