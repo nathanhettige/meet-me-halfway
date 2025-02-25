@@ -1,8 +1,8 @@
 import { j } from "../jstack";
 import autocomplete from "../handlers/maps/autocomplete";
-import find from "../handlers/maps/find";
+import search from "../handlers/maps/search";
 
 export const mapsRouter = j.router({
   autocomplete,
-  find,
+  search,
 });

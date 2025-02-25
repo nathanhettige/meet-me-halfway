@@ -1,6 +1,5 @@
 import { j } from "./jstack"
 import { mapsRouter } from "./routers/maps-router.";
-import { postRouter } from "./routers/post-router";
 import type { InferRouterInputs, InferRouterOutputs } from "jstack";
 
 /**
@@ -20,7 +19,6 @@ const api = j
  * All routers in /server/routers should be added here manually.
  */
 const appRouter = j.mergeRouters(api, {
-  post: postRouter,
   maps: mapsRouter,
 });
 

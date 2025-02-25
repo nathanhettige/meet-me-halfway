@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle } from "@ui/card";
-import Search from "./search";
+import AddressForm from "./AddressForm";
 
 export default async function Home() {
   return (
@@ -9,7 +9,7 @@ export default async function Home() {
           <CardTitle>Meet Me Halfway</CardTitle>
           {/* <CardDescription>Enter you and your friends location</CardDescription> */}
         </CardHeader>
-        <Search />
+        <AddressForm />
       </Card>
     </main>
   );

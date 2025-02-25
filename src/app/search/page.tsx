@@ -1,8 +1,6 @@
 "use client";
 
-import { InferOutput } from "@/server";
-import { useMutationState } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import {
   Card,
@@ -12,29 +10,35 @@ import {
   CardContent,
 } from "@ui/card";
 import MarkerMap from "../components/markerMap";
+import useSearch from "../hooks/useSearch";
+import { Spinner } from "../components/ui/spinner";
 
 const Places = () => {
-  const router = useRouter();
-  const data = useMutationState({
-    filters: {
-      mutationKey: ["findPlaces"],
-    },
-    select: (mutation) => mutation.state.data,
-  });
+  const searchParams = useSearchParams();
+  const search = useSearch();
 
-  const latest = data[data.length - 1] as InferOutput["maps"]["find"];
+  const router = useRouter();
 
   useEffect(() => {
-    if (!latest) {
+    if (!search.isIdle) return;
+    const placeIds = searchParams.get("placeIds")?.split(",") || [];
+
+    if (placeIds.length > 0) {
+      search.mutate(placeIds);
+    } else {
       router.push("/");
     }
-  }, [latest, router]);
+  }, [router, search, searchParams]);
 
-  if (!latest) {
-    return null;
+  if (!search.data) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
   }
 
-  const iterations = latest.iterations.map((iter) => iter.midpoint);
+  const iterations = search.data.iterations.map((iter) => iter.midpoint);
 
   return (
     <div className="grid grid-cols-[auto_1fr]">
@@ -49,12 +53,12 @@ const Places = () => {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Iterations Required:</span>
-              <span className="text-sm">{latest.iterations.length}</span>
+              <span className="text-sm">{search.data.iterations.length}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Found on Iteration:</span>
               <span className="text-sm">
-                {latest.performance.foundOnIteration}
+                {search.data.performance.foundOnIteration}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -62,19 +66,19 @@ const Places = () => {
                 Travel Time Difference:
               </span>
               <span className="text-sm">
-                {Math.floor(latest.performance.timeDifference / 60)}m{" "}
-                {latest.performance.timeDifference % 60}s
+                {Math.floor(search.data.performance.timeDifference / 60)}m{" "}
+                {search.data.performance.timeDifference % 60}s
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Time Difference %:</span>
               <span className="text-sm">
-                {latest.performance.percentageDiff.toFixed(1)}%
+                {search.data.performance.percentageDiff.toFixed(1)}%
               </span>
             </div>
           </CardContent>
         </Card>
-        {latest.places.map((place) => (
+        {search.data.places.map((place) => (
           <Card key={place.id} className="w-full max-w-md">
             <CardHeader>
               <CardTitle>{place.displayName.text}</CardTitle>
@@ -87,8 +91,8 @@ const Places = () => {
         ))}
       </div>
       <MarkerMap
-        coordinates={latest.coordinates}
-        midpoint={latest.midpoint}
+        coordinates={search.data.coordinates}
+        midpoint={search.data.midpoint}
         iterations={iterations}
       />
     </div>

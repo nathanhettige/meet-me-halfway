@@ -140,8 +140,8 @@ const handler = publicProcedure
       iterations: iterations,
       performance: {
         foundOnIteration: bestIterationNumber,
-        timeDifference: iterations[bestIterationNumber - 1]?.timeDifference,
-        percentageDiff: iterations[bestIterationNumber - 1]?.percentageDiff,
+        timeDifference: iterations[bestIterationNumber - 1]!.timeDifference,
+        percentageDiff: iterations[bestIterationNumber - 1]!.percentageDiff,
       },
     });
   });

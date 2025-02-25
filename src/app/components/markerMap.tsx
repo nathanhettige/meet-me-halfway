@@ -1,7 +1,7 @@
 import React from "react";
 import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import { Marker } from "@react-google-maps/api";
-import { Coordinates } from "@/server/handlers/maps/find";
+import { Coordinates } from "@/server/handlers/maps/search";
 
 const MarkerMap = ({
   coordinates,
