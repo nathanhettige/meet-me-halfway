@@ -1,3 +1,26 @@
+# Meet me halfway
+
+Find the perfect meeting spot between you and your friends.
+
+## Quick Start
+1. Set .env variables
+
+2. Install dependencies
+```
+pnpm install
+```
+
+3. Run the development server
+```
+pnpm dev
+```
+
+4. Navigate to http://localhost:3000
+
+
+## How it works
+*This is all from a ChatGPT conversation.*
+
 1. Enhanced Central Point Calculation:
 
     Weight by Travel Time: Instead of a simple average of latitude and longitude, you can calculate a weighted average based on estimated travel times. This requires an initial rough estimate of travel times from each person's location to a potential central area. This will pull the "center" towards the person who might have a longer journey due to obstacles.
