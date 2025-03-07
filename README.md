@@ -17,6 +17,13 @@ pnpm dev
 
 4. Navigate to http://localhost:3000
 
+## Tools used / Docs
+- [JStack](https://jstack.dev)
+- [Next.js](https://nextjs.org)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Shadcn](https://ui.shadcn.com)
+- [React Query](https://tanstack.com/query)
+- [Google Maps API](https://developers.google.com/maps/documentation/javascript/overview)
 
 ## How it works
 *This is all from a ChatGPT conversation.*
