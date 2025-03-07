@@ -12,5 +12,9 @@ const useSearch = (placeIds: string[]) =>
       const data = await res.json();
       return data;
     },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 export default useSearch;
