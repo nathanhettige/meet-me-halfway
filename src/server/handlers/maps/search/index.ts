@@ -2,8 +2,9 @@ import { publicProcedure } from "@/server/jstack";
 import { z } from "zod";
 import calculateMidpoint from "./calculateMidpoint";
 import fetchPlaceDetails from "./fetchPlaceDetails";
-import fetchSearchNearby from "./fetchSearchNearby";
+import fetchSearchNearbyActivities from "./fetchNearbyActivities";
 import fetchRouteMatrix from "./fetchRouteMatrix";
+import fetchNearbyCities from "./fetchNearbyCities";
 
 // Example (Conceptual - with Directions API):
 
@@ -56,10 +57,20 @@ const handler = publicProcedure
 
     // Iteratively search for better midpoint
     for (let i = 0; i < MAX_ITERATIONS; i++) {
-      const places = await fetchSearchNearby(currentMidpoint);
+      const places = await fetchSearchNearbyActivities(currentMidpoint);
       if (places.length === 0) {
-        // TODO: Adjust search radius or move towards nearest populated area
         console.log(`Iteration ${i + 1}: No places found near midpoint`);
+
+        // Adjust search radius or move towards nearest populated area
+        const cities = await fetchNearbyCities(currentMidpoint);
+        if (cities.length > 0) {
+          console.log(
+            "No places found near midpoint, adjusted to nearby city - ",
+            cities[0]!.displayName
+          );
+          currentMidpoint = cities[0]!.location;
+        }
+        // TODO: Return early if no cities nearby
         continue;
       }
 
@@ -131,7 +142,7 @@ const handler = publicProcedure
     }
 
     // Use the best midpoint found for final search
-    const finalPlaces = await fetchSearchNearby(bestMidpoint);
+    const finalPlaces = await fetchSearchNearbyActivities(bestMidpoint);
 
     return c.superjson({
       coordinates: coordinates,
@@ -140,8 +151,10 @@ const handler = publicProcedure
       iterations: iterations,
       performance: {
         foundOnIteration: bestIterationNumber,
-        timeDifference: iterations[bestIterationNumber - 1]!.timeDifference,
-        percentageDiff: iterations[bestIterationNumber - 1]!.percentageDiff,
+        timeDifference:
+          iterations[bestIterationNumber - 1]?.timeDifference ?? 0,
+        percentageDiff:
+          iterations[bestIterationNumber - 1]?.percentageDiff ?? 0,
       },
     });
   });

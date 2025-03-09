@@ -1,6 +1,6 @@
 import { Coordinates } from ".";
 
-const fetchSearchNearby = async (coordinates: Coordinates) => {
+const fetchNearbyActivities = async (coordinates: Coordinates) => {
   const places = await fetch(
     "https://places.googleapis.com/v1/places:searchNearby",
     {
@@ -32,9 +32,10 @@ const fetchSearchNearby = async (coordinates: Coordinates) => {
               latitude: coordinates.latitude,
               longitude: coordinates.longitude,
             },
-            radius: 1000.0, // 1km
+            radius: 25000.0, // 25km
           },
         },
+        rankPreference: "DISTANCE",
       }),
     }
   );
@@ -59,4 +60,4 @@ const fetchSearchNearby = async (coordinates: Coordinates) => {
   return data.places ?? [];
 };
 
-export default fetchSearchNearby;
+export default fetchNearbyActivities;
