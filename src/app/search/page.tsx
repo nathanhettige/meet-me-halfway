@@ -12,6 +12,7 @@ import {
 import MarkerMap from "../components/markerMap";
 import useSearch from "../hooks/useSearch";
 import { Spinner } from "../components/ui/spinner";
+import { APIProvider } from "@vis.gl/react-google-maps";
 
 const Places = () => {
   const searchParams = useSearchParams();
@@ -84,11 +85,13 @@ const Places = () => {
           </Card>
         ))}
       </div>
-      <MarkerMap
-        coordinates={search.data.coordinates}
-        midpoint={search.data.midpoint}
-        iterations={iterations}
-      />
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        <MarkerMap
+          coordinates={search.data.coordinates}
+          midpoint={search.data.midpoint}
+          iterations={iterations}
+        />
+      </APIProvider>
     </div>
   );
 };
