@@ -28,12 +28,12 @@ const MarkerMap = ({
 
   return (
     <Map
-      mapId="marker-map" // required when using AdvancedMarker
+      mapId="marker-map" 
       colorScheme="FOLLOW_SYSTEM"
       defaultZoom={10}
       defaultCenter={{ lat: midpoint.latitude, lng: midpoint.longitude }}
-      gestureHandling={"greedy"} // copied from example, not sure
-      disableDefaultUI={true} // copied from example, not sure
+      gestureHandling={"greedy"} 
+      disableDefaultUI={true} 
       className="w-full h-screen"
     >
       {coordinates.map((coord, index) => (
