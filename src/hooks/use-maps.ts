@@ -18,11 +18,16 @@ function useDebouncedValue(value: string, delay = 300) {
 export function useAutocomplete(input: string) {
   const debouncedInput = useDebouncedValue(input)
 
-  return useQuery({
+  const query = useQuery({
     enabled: debouncedInput.length > 0,
     queryKey: ["autocomplete", debouncedInput],
     queryFn: () => autocomplete({ data: { input: debouncedInput } }),
   })
+
+  return {
+    ...query,
+    isDebouncing: input !== debouncedInput,
+  }
 }
 
 export function useSearch(placeIds: Array<string>) {
