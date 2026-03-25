@@ -1,5 +1,6 @@
 import { useEffect } from "react"
-import { AdvancedMarker, Map, Pin, useMap } from "@vis.gl/react-google-maps"
+import { AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps"
+import { Home } from "lucide-react"
 import type { Coordinates, IterationResult } from "@/server/maps/types"
 
 type MarkerMapProps = {
@@ -42,20 +43,21 @@ export function MarkerMap({
           key={`coord-${index}`}
           position={{ lat: coord.latitude, lng: coord.longitude }}
         >
-          <Pin scale={1.25} glyphColor="#A71010">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="size-5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </Pin>
+          <div
+            style={{
+              background: "#DC2626",
+              border: "2px solid #991B1B",
+              borderRadius: "50%",
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+            }}
+          >
+            <Home size={16} color="#fff" strokeWidth={2.5} />
+          </div>
         </AdvancedMarker>
       ))}
 
@@ -66,7 +68,10 @@ export function MarkerMap({
       {iterations.map((iter) => (
         <AdvancedMarker
           key={`iter-${iter.iteration}`}
-          position={{ lat: iter.midpoint.latitude, lng: iter.midpoint.longitude }}
+          position={{
+            lat: iter.midpoint.latitude,
+            lng: iter.midpoint.longitude,
+          }}
         >
           <div className="flex size-6 items-center justify-center rounded-full border border-white bg-green-500 text-xs font-bold text-black">
             {iter.iteration}
