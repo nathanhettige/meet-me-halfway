@@ -9,6 +9,7 @@ import {
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
 import {
   Text3D,
+  Text,
   Center,
   Environment,
   Float,
@@ -347,29 +348,17 @@ function BalloonButton({
           />
         </RoundedBox>
 
-        {/* Button text — centered on the pill */}
-        <group position={[-textWidth / 2, -textSize * 0.4, depth / 2 + 0.01]}>
-          <Text3D
-            font={FONT_PATH}
-            size={textSize}
-            height={textSize * 0.15}
-            bevelEnabled
-            bevelThickness={textSize * 0.04}
-            bevelSize={textSize * 0.03}
-            bevelSegments={6}
-            curveSegments={12}
-          >
-            {text}
-            <meshPhysicalMaterial
-              color="#4a9eed"
-              metalness={0.3}
-              roughness={0.2}
-              clearcoat={0.8}
-              clearcoatRoughness={0.1}
-              envMapIntensity={1.2}
-            />
-          </Text3D>
-        </group>
+        {/* Button text — solid dark fill, no outline */}
+        <Text
+          font="/fonts/nunito-bold.ttf"
+          fontSize={textSize}
+          position={[0, 0, depth / 2 + 0.01]}
+          anchorX="center"
+          anchorY="middle"
+          color="#2a2a2a"
+        >
+          {text}
+        </Text>
       </group>
     </Float>
   )
