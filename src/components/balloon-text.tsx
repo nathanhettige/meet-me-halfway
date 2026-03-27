@@ -1,19 +1,19 @@
 import {
   Suspense,
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react"
-import { Canvas, useThree, useFrame } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import {
-  Text3D,
-  Text,
   Environment,
   Float,
   Lightformer,
   RoundedBox,
+  Text,
+  Text3D,
 } from "@react-three/drei"
 import * as THREE from "three"
 
@@ -21,7 +21,7 @@ const FONT_PATH = "/fonts/nunito-bold.json"
 
 // Font glyph data loaded at module level for character width calculations
 let fontData: {
-  glyphs: Record<string, { ha: number }>
+  glyphs: Partial<Record<string, { ha: number }>>
   resolution: number
 } | null = null
 const fontDataPromise =
