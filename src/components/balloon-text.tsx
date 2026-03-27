@@ -13,6 +13,7 @@ import {
   Environment,
   Float,
   Lightformer,
+  RoundedBox,
 } from "@react-three/drei"
 import * as THREE from "three"
 
@@ -245,7 +246,136 @@ function BalloonWord({
   )
 }
 
-function ResponsiveScene() {
+function BalloonButton({
+  position,
+  size,
+  onNavigate,
+}: {
+  position: [number, number, number]
+  size: number
+  onNavigate: () => void
+}) {
+  const groupRef = useRef<THREE.Group>(null)
+  const [hovered, setHovered] = useState(false)
+  const [pressed, setPressed] = useState(false)
+  const scaleRef = useRef(1)
+
+  // Button dimensions relative to text size
+  const btnScale = size * 0.55
+  const text = "start"
+  const textSize = btnScale * 1.1
+
+  // Calculate text width to center it on the button
+  const textWidth = useMemo(() => {
+    if (!fontData) return 0
+    const scale = textSize / fontData.resolution
+    return Array.from(text).reduce((sum, char) => {
+      const glyph = fontData!.glyphs[char]
+      return sum + (glyph ? glyph.ha * scale : textSize * 0.6)
+    }, 0)
+  }, [textSize])
+
+  // Pill dimensions derived from actual text width
+  const horizontalPadding = btnScale * 1.8
+  const padX = textWidth + horizontalPadding
+  const padY = btnScale * 1.6
+  const depth = btnScale * 0.7
+  const radius = btnScale * 0.4
+
+  // Smooth hover/press scale animation
+  useFrame((_, delta) => {
+    if (!groupRef.current) return
+    const target = pressed ? 0.92 : hovered ? 1.08 : 1
+    scaleRef.current = THREE.MathUtils.lerp(
+      scaleRef.current,
+      target,
+      delta * 12
+    )
+    groupRef.current.scale.setScalar(scaleRef.current)
+  })
+
+  // Change cursor on hover
+  const handlePointerOver = useCallback(() => {
+    setHovered(true)
+    document.body.style.cursor = "pointer"
+  }, [])
+
+  const handlePointerOut = useCallback(() => {
+    setHovered(false)
+    setPressed(false)
+    document.body.style.cursor = "auto"
+  }, [])
+
+  const handlePointerDown = useCallback(() => {
+    setPressed(true)
+  }, [])
+
+  const handlePointerUp = useCallback(() => {
+    setPressed(false)
+  }, [])
+
+  const handleClick = useCallback(() => {
+    onNavigate()
+  }, [onNavigate])
+
+  return (
+    <Float
+      speed={1.5}
+      rotationIntensity={0.03}
+      floatIntensity={0.15}
+      floatingRange={[-0.05, 0.05]}
+    >
+      <group
+        position={position}
+        ref={groupRef}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onClick={handleClick}
+      >
+        {/* Pill-shaped button background */}
+        <RoundedBox args={[padX, padY, depth]} radius={radius} smoothness={8}>
+          <meshPhysicalMaterial
+            color={hovered ? "#f0f4ff" : "#ffffff"}
+            metalness={0.9}
+            roughness={0.1}
+            clearcoat={1}
+            clearcoatRoughness={0.05}
+            reflectivity={1}
+            envMapIntensity={hovered ? 2.2 : 1.8}
+          />
+        </RoundedBox>
+
+        {/* Button text — centered on the pill */}
+        <group position={[-textWidth / 2, -textSize * 0.4, depth / 2 + 0.01]}>
+          <Text3D
+            font={FONT_PATH}
+            size={textSize}
+            height={textSize * 0.15}
+            bevelEnabled
+            bevelThickness={textSize * 0.04}
+            bevelSize={textSize * 0.03}
+            bevelSegments={6}
+            curveSegments={12}
+          >
+            {text}
+            <meshPhysicalMaterial
+              color="#4a9eed"
+              metalness={0.3}
+              roughness={0.2}
+              clearcoat={0.8}
+              clearcoatRoughness={0.1}
+              envMapIntensity={1.2}
+            />
+          </Text3D>
+        </group>
+      </group>
+    </Float>
+  )
+}
+
+function ResponsiveScene({ onNavigate }: { onNavigate: () => void }) {
   const { viewport } = useThree()
 
   // Scale text to fit viewport width with padding
@@ -289,13 +419,18 @@ function ResponsiveScene() {
             size={size}
             startIndex={6}
           />
+          <BalloonButton
+            position={[0, -(lineGap + size) * 2 - size * 0.3, 0]}
+            size={size}
+            onNavigate={onNavigate}
+          />
         </group>
       </Center>
     </>
   )
 }
 
-export function BalloonText() {
+export function BalloonText({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div className="absolute inset-0 z-10">
       <Canvas
@@ -305,7 +440,7 @@ export function BalloonText() {
         dpr={[1, 2]}
       >
         <Suspense fallback={null}>
-          <ResponsiveScene />
+          <ResponsiveScene onNavigate={onNavigate} />
         </Suspense>
       </Canvas>
     </div>
