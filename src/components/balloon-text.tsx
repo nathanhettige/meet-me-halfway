@@ -37,7 +37,7 @@ const fontDataPromise =
 function measureTextWidth(text: string, size: number): number {
   if (!fontData) return text.length * size * 0.6
   const scale = size / fontData.resolution
-  const spacing = size * 0.06
+  const spacing = size * 0.12
   const chars = Array.from(text)
   const charWidths = chars.map((char) => {
     const glyph = fontData!.glyphs[char]
@@ -223,7 +223,7 @@ function BalloonWord({
     return glyph ? glyph.ha * scale : size * 0.6
   })
 
-  const spacing = size * 0.06
+  const spacing = size * 0.12
   const totalWidth =
     charWidths.reduce((sum, w) => sum + w, 0) + spacing * (chars.length - 1)
   let xOffset = -totalWidth / 2

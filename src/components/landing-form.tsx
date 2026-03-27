@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, MapPin, Navigation } from "lucide-react"
+import { Plus, MapPin } from "lucide-react"
 import { AutoComplete } from "@/components/autocomplete"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 let nextId = 0
 function createEntry(placeId = "") {
@@ -36,34 +37,26 @@ export function LandingForm({ visible }: { visible: boolean }) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-x-0 bottom-0 z-20 flex items-start justify-center px-4 pt-6"
-          style={{ top: "40vh" }}
+          className="absolute inset-x-0 bottom-0 z-20 flex items-start justify-center px-6"
+          style={{ top: "38vh" }}
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
         >
-          <motion.div
-            className="landing-form-card w-full max-w-sm"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.22, 1, 0.36, 1],
-              delay: 0.5,
-            }}
-          >
-            {/* Header */}
+          <div className="landing-form w-full max-w-sm">
+            {/* Tagline */}
             <motion.div
-              className="mb-4 flex items-center gap-2"
+              className="mb-5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <Navigation className="h-4 w-4 text-white/70" />
-              <p className="text-sm font-medium text-white/80">
-                Where is everyone starting from?
-              </p>
+              <Alert className="border-white/20 bg-white/15 backdrop-blur-md">
+                <AlertDescription className="text-center text-base font-semibold text-foreground">
+                  Drop your locations. We'll find the perfect spot to meet.
+                </AlertDescription>
+              </Alert>
             </motion.div>
 
             {/* Address inputs */}
@@ -78,7 +71,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
                   transition={{
                     duration: 0.5,
                     ease: [0.22, 1, 0.36, 1],
-                    delay: 0.8 + index * 0.1,
+                    delay: 0.75 + index * 0.1,
                   }}
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white">
@@ -112,13 +105,14 @@ export function LandingForm({ visible }: { visible: boolean }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 duration: 0.5,
-                delay: 1.0 + entries.length * 0.1,
+                delay: 0.95 + entries.length * 0.1,
               }}
             >
               <Button
                 onClick={onSubmit}
                 disabled={!hasEnoughPlaces}
-                className="flex-1 bg-white/90 font-semibold text-slate-800 shadow-lg backdrop-blur-sm hover:bg-white"
+                size="lg"
+                className="flex-1 bg-white/90 text-base font-semibold text-slate-800 shadow-lg backdrop-blur-sm hover:bg-white"
               >
                 Find a place to meet
               </Button>
@@ -131,7 +125,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
                 <Plus className="h-4 w-4" />
               </Button>
             </motion.div>
-          </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
