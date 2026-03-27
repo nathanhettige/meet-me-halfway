@@ -188,3 +188,46 @@
 .animate-cloud-bob {
   animation: cloud-bob var(--bob-duration, 6s) ease-in-out infinite;
 }
+
+/* Landing form — glassmorphism card */
+.landing-form-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Override autocomplete input styling inside the landing form */
+.landing-form-card input {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  border-radius: 0.625rem;
+}
+
+.landing-form-card input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.landing-form-card input:focus {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Override outline/ghost button styling inside the landing form */
+.landing-form-card button[data-variant="outline"] {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.landing-form-card button[data-variant="outline"]:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+}

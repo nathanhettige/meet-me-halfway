@@ -1,15 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useCallback } from "react"
+import { createFileRoute } from "@tanstack/react-router"
+import { useState, useCallback } from "react"
 import { CloudBackground } from "@/components/clouds"
 import { BalloonText } from "@/components/balloon-text"
+import { LandingForm } from "@/components/landing-form"
 
 export const Route = createFileRoute("/")({ component: HomePage })
 
 function HomePage() {
-  const navigate = useNavigate()
-  const handleNavigate = useCallback(() => {
-    navigate({ to: "/search", search: { placeIds: "" } })
-  }, [navigate])
+  const [started, setStarted] = useState(false)
+
+  const handleStart = useCallback(() => {
+    setStarted(true)
+  }, [])
+
   return (
     <div className="sky-gradient relative h-svh overflow-hidden">
       {/* Atmospheric glow overlays */}
@@ -47,7 +50,8 @@ function HomePage() {
         }}
       />
       <CloudBackground />
-      <BalloonText onNavigate={handleNavigate} />
+      <BalloonText started={started} onStart={handleStart} />
+      <LandingForm visible={started} />
     </div>
   )
 }
