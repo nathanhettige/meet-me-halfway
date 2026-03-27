@@ -7,20 +7,20 @@ import { Button } from "@/components/ui/button"
 
 let nextId = 0
 function createEntry(placeId = "") {
-  return { id: nextId++, placeId }
+  return { id: `entry-${Date.now()}-${nextId++}`, placeId }
 }
 
 export function AddressForm() {
   const navigate = useNavigate()
   const [entries, setEntries] = useState(() => [createEntry(), createEntry()])
 
-  const handleChange = (entryId: number, value: string) => {
+  const handleChange = (entryId: string, value: string) => {
     setEntries((prev) =>
       prev.map((e) => (e.id === entryId ? { ...e, placeId: value } : e))
     )
   }
 
-  const onDelete = (entryId: number) => {
+  const onDelete = (entryId: string) => {
     setEntries((prev) => prev.filter((e) => e.id !== entryId))
   }
 

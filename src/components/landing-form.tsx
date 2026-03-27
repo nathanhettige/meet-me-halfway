@@ -8,20 +8,20 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 
 let nextId = 0
 function createEntry(placeId = "") {
-  return { id: nextId++, placeId }
+  return { id: `entry-${Date.now()}-${nextId++}`, placeId }
 }
 
 export function LandingForm({ visible }: { visible: boolean }) {
   const navigate = useNavigate()
   const [entries, setEntries] = useState(() => [createEntry(), createEntry()])
 
-  const handleChange = useCallback((entryId: number, value: string) => {
+  const handleChange = useCallback((entryId: string, value: string) => {
     setEntries((prev) =>
       prev.map((e) => (e.id === entryId ? { ...e, placeId: value } : e))
     )
   }, [])
 
-  const onDelete = useCallback((entryId: number) => {
+  const onDelete = useCallback((entryId: string) => {
     setEntries((prev) => prev.filter((e) => e.id !== entryId))
   }, [])
 
