@@ -132,16 +132,78 @@ function BalloonLetter({
   const rotIntensity = 0.04 + seededRandom(index + 200) * 0.08
 
   const meshRef = useRef<THREE.Group>(null)
+  const parentRef = useRef<THREE.Group>(null)
   const [jiggling, setJiggling] = useState(false)
   const jiggleTime = useRef(0)
+
+  // --- Drag state ---
+  const { camera, gl } = useThree()
+  const dragging = useRef(false)
+  const dragOffset = useRef(new THREE.Vector3(0, 0, 0))
+  const snapVelocity = useRef(new THREE.Vector3(0, 0, 0))
+  const didDrag = useRef(false)
+  // Store the NDC coords at drag start, and compute deltas in NDC then convert
+  const dragStartNDC = useRef({ x: 0, y: 0 })
+  const dragStartOffset = useRef(new THREE.Vector3(0, 0, 0))
+
+  /** Convert NDC coords to world-space on the z=0 plane */
+  const ndcToWorld = useCallback(
+    (ndcX: number, ndcY: number): THREE.Vector3 => {
+      const vec = new THREE.Vector3(ndcX, ndcY, 0.5)
+      vec.unproject(camera)
+      const dir = vec.sub(camera.position).normalize()
+      const dist = -camera.position.z / dir.z
+      return camera.position.clone().add(dir.multiplyScalar(dist))
+    },
+    [camera]
+  )
+
+  /** Convert client pixel coords to NDC */
+  const clientToNDC = useCallback(
+    (clientX: number, clientY: number) => {
+      const rect = gl.domElement.getBoundingClientRect()
+      return {
+        x: ((clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((clientY - rect.top) / rect.height) * 2 + 1,
+      }
+    },
+    [gl]
+  )
+
+  /** Convert a world-space delta to the local space of the meshRef's parent */
+  const worldDeltaToLocal = useCallback(
+    (dx: number, dy: number): { lx: number; ly: number } => {
+      if (!parentRef.current) return { lx: dx, ly: dy }
+      // Get the parent's world matrix inverse to transform the delta
+      const parentMatrixInv = new THREE.Matrix4()
+        .copy(parentRef.current.matrixWorld)
+        .invert()
+      // Transform direction (not point) — extract just rotation+scale
+      const delta = new THREE.Vector3(dx, dy, 0)
+      delta.applyMatrix4(new THREE.Matrix4().extractRotation(parentMatrixInv))
+      // Also account for scale
+      const parentScale = new THREE.Vector3()
+      parentRef.current.matrixWorld.decompose(
+        new THREE.Vector3(),
+        new THREE.Quaternion(),
+        parentScale
+      )
+      return {
+        lx: dx / parentScale.x,
+        ly: dy / parentScale.y,
+      }
+    },
+    []
+  )
 
   useFrame((_, delta) => {
     if (!meshRef.current) return
 
-    if (jiggling) {
+    // --- Jiggle animation (skip while dragging) ---
+    if (jiggling && !dragging.current) {
       jiggleTime.current += delta
       const t = jiggleTime.current
-      const duration = 0.6
+      const duration = 1.2
 
       if (t >= duration) {
         setJiggling(false)
@@ -150,22 +212,113 @@ function BalloonLetter({
         meshRef.current.rotation.x = 0
         meshRef.current.scale.setScalar(1)
       } else {
-        const decay = Math.exp(-t * 6)
+        const decay = Math.exp(-t * 4)
         const freq = 18
         const wobble = Math.sin(t * freq) * decay
-        meshRef.current.rotation.z = wobble * 0.2
-        meshRef.current.rotation.x = wobble * 0.1
-        meshRef.current.scale.set(1 + wobble * 0.08, 1 - wobble * 0.08, 1)
+        meshRef.current.rotation.z = wobble * 0.25
+        meshRef.current.rotation.x = wobble * 0.12
+
+        // Vertical bounce — abs(sin) gives a bouncing ball shape
+        const bounceDecay = Math.exp(-t * 3)
+        const bounce = Math.abs(Math.sin(t * 12)) * bounceDecay * 0.15
+        meshRef.current.position.y = dragOffset.current.y + bounce
+
+        meshRef.current.scale.set(1 + wobble * 0.1, 1 - wobble * 0.1, 1)
       }
+    }
+
+    // --- Snap-back when not dragging ---
+    if (!dragging.current) {
+      const off = dragOffset.current
+      const vel = snapVelocity.current
+      const distSq = off.lengthSq()
+
+      if (distSq > 0.00001) {
+        // Damped spring: F = -k*x - d*v (slightly overdamped — no overshoot)
+        const stiffness = 35
+        const damping = 14
+        vel.x += (-stiffness * off.x - damping * vel.x) * delta
+        vel.y += (-stiffness * off.y - damping * vel.y) * delta
+        vel.z += (-stiffness * off.z - damping * vel.z) * delta
+        off.x += vel.x * delta
+        off.y += vel.y * delta
+        off.z += vel.z * delta
+
+        meshRef.current.position.x = off.x
+        meshRef.current.position.y = off.y
+        meshRef.current.position.z = off.z
+      } else if (distSq > 0) {
+        // Close enough — snap to zero
+        off.set(0, 0, 0)
+        vel.set(0, 0, 0)
+        if (!jiggling) {
+          meshRef.current.position.set(0, 0, 0)
+        }
+      }
+    } else {
+      // While dragging, apply offset directly
+      meshRef.current.position.copy(dragOffset.current)
     }
   })
 
-  const handleClick = useCallback(() => {
-    if (!jiggling) {
-      setJiggling(true)
-      jiggleTime.current = 0
-    }
-  }, [jiggling])
+  // --- Drag: onPointerDown via R3F, then native DOM events for move/up ---
+  const handlePointerDown = useCallback(
+    (e: any) => {
+      e.stopPropagation()
+      dragging.current = true
+      didDrag.current = false
+      snapVelocity.current.set(0, 0, 0)
+      dragStartOffset.current.copy(dragOffset.current)
+
+      const clientX =
+        e.nativeEvent?.clientX ?? e.clientX ?? e.sourceEvent?.clientX ?? 0
+      const clientY =
+        e.nativeEvent?.clientY ?? e.clientY ?? e.sourceEvent?.clientY ?? 0
+      dragStartNDC.current = clientToNDC(clientX, clientY)
+
+      document.body.style.cursor = "grabbing"
+
+      const onMove = (ev: PointerEvent) => {
+        const currentNDC = clientToNDC(ev.clientX, ev.clientY)
+        // Compute world-space positions for start and current NDC
+        const startWorld = ndcToWorld(
+          dragStartNDC.current.x,
+          dragStartNDC.current.y
+        )
+        const currentWorld = ndcToWorld(currentNDC.x, currentNDC.y)
+        const worldDx = currentWorld.x - startWorld.x
+        const worldDy = currentWorld.y - startWorld.y
+
+        if (Math.abs(worldDx) > 0.05 || Math.abs(worldDy) > 0.05) {
+          didDrag.current = true
+        }
+
+        // Convert world-space delta to local space of the letter's parent
+        const { lx, ly } = worldDeltaToLocal(worldDx, worldDy)
+        dragOffset.current.set(
+          dragStartOffset.current.x + lx,
+          dragStartOffset.current.y + ly,
+          0
+        )
+      }
+
+      const onUp = () => {
+        dragging.current = false
+        document.body.style.cursor = "auto"
+        window.removeEventListener("pointermove", onMove)
+        window.removeEventListener("pointerup", onUp)
+        if (!didDrag.current) {
+          setJiggling(true)
+          jiggleTime.current = 0
+        }
+      }
+
+      // Attach to window so dragging works even outside the canvas
+      window.addEventListener("pointermove", onMove)
+      window.addEventListener("pointerup", onUp)
+    },
+    [clientToNDC, ndcToWorld, worldDeltaToLocal]
+  )
 
   return (
     <Float
@@ -174,8 +327,8 @@ function BalloonLetter({
       floatIntensity={floatIntensity}
       floatingRange={[-0.08, 0.08]}
     >
-      <group position={position}>
-        <group ref={meshRef} onClick={handleClick}>
+      <group position={position} ref={parentRef}>
+        <group ref={meshRef} onPointerDown={handlePointerDown}>
           <Text3D
             font={FONT_PATH}
             size={size}
