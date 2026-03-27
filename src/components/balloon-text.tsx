@@ -539,14 +539,18 @@ function ResponsiveScene({
 }) {
   const { viewport } = useThree()
 
-  // --- Base size at landing (same as original) ---
-  const maxTextWidth = viewport.width * 0.85
+  // --- Base size at landing (scales with viewport, capped for readability) ---
+  // The text should fill ~85% of viewport width on mobile but look proportional
+  // on wider viewports (desktop, split-screen). We use a width-driven size with
+  // a hard cap, plus reduce the fill ratio on wider screens so the text doesn't
+  // dominate when there's lots of horizontal space.
   const charsInLongestLine = 8.5
   const charWidthFactor = 0.7
-  const size = Math.min(
-    maxTextWidth / (charsInLongestLine * charWidthFactor),
-    1.0
-  )
+  const charUnits = charsInLongestLine * charWidthFactor // ~5.95
+  // On narrow screens use 85% of width; on wider screens taper down to 55%
+  const fillRatio = Math.max(0.55, 0.85 - (viewport.width - 4) * 0.03)
+  const maxSizeByWidth = (viewport.width * fillRatio) / charUnits
+  const size = Math.min(maxSizeByWidth, 0.75)
 
   const lineGap = size * 0.4
 
@@ -582,8 +586,9 @@ function ResponsiveScene({
   // near the top of the visible area.
   // After scaling, the group's apparent top is at:
   //   groupY + (compactLine1Y + size/2) * compactScale
-  // We want that at roughly viewport.height/2 - some margin
-  const margin = size * 1.6
+  // We want that at roughly viewport.height/2 - some margin.
+  // On desktop (taller viewport), push higher so text doesn't overlap the form.
+  const margin = size * 1.2
   const compactGroupY =
     viewport.height / 2 - margin - (compactLine1Y + size / 2) * compactScale
 
