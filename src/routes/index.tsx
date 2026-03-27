@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Card, CardDescription, CardHeader } from "@/components/ui/card"
-import { AddressForm } from "@/components/address-form"
 import { CloudBackground } from "@/components/clouds"
+import { BalloonText } from "@/components/balloon-text"
 
 export const Route = createFileRoute("/")({ component: HomePage })
 
 function HomePage() {
   return (
-    <div className="sky-gradient relative flex min-h-svh items-center justify-center overflow-hidden p-6">
-      {/* Atmospheric glow overlays — soft white radial gradients like scattered light */}
+    <div className="sky-gradient relative h-svh overflow-hidden">
+      {/* Atmospheric glow overlays */}
       <div
         className="pointer-events-none absolute opacity-40"
         style={{
@@ -43,14 +42,7 @@ function HomePage() {
         }}
       />
       <CloudBackground />
-      <Card className="relative z-10 w-full max-w-lg shadow-2xl backdrop-blur-sm">
-        <CardHeader>
-          <CardDescription>
-            Find a fair meeting point based on equal driving time
-          </CardDescription>
-        </CardHeader>
-        <AddressForm />
-      </Card>
+      <BalloonText />
     </div>
   )
 }
