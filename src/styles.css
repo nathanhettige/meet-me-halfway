@@ -72,7 +72,7 @@
   --chart-3: oklch(0.438 0.017 39.3);
   --chart-4: oklch(0.367 0.016 35.7);
   --chart-5: oklch(0.268 0.011 36.5);
-  --radius: 0.625rem;
+  --radius: 0.875rem;
   --sidebar: oklch(0.986 0.002 67.8);
   --sidebar-foreground: oklch(0.147 0.004 49.3);
   --sidebar-primary: oklch(0.648 0.2 131.684);
@@ -192,18 +192,22 @@
 /* Landing form — autocomplete input styling on sky background */
 .landing-form input {
   background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
-  border-radius: 0.625rem;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--foreground) !important;
+  border-radius: 0.875rem;
 }
 
 .landing-form input::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(30, 41, 59, 0.45) !important;
 }
 
 .landing-form input:focus {
   background: rgba(255, 255, 255, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15) !important;
 }
 

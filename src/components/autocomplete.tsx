@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Autocomplete } from "@base-ui/react/autocomplete"
-import { Trash2 } from "lucide-react"
+import { MapPin, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAutocomplete } from "@/hooks/use-maps"
@@ -43,7 +43,7 @@ export function AutoComplete({
 
   return (
     <div className="flex w-full gap-2">
-      <div className="w-full">
+      <div className="relative w-full">
         <Autocomplete.Root
           disabled={disabled}
           items={options}
@@ -52,10 +52,11 @@ export function AutoComplete({
           filter={null}
           onValueChange={(next) => setSearchValue(next)}
         >
+          <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-foreground" />
           <Autocomplete.Input
             placeholder={placeholder}
             className={cn(
-              "h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base",
+              "h-12 w-full rounded-xl border border-input bg-background py-2 pr-3 pl-10 text-base",
               "ring-offset-background placeholder:text-muted-foreground",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50"

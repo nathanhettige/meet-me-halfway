@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "framer-motion"
-import { MapPin, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { AutoComplete } from "@/components/autocomplete"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -37,8 +37,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-x-0 bottom-0 z-20 flex items-start justify-center px-6"
-          style={{ top: "42vh" }}
+          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center px-6 md:top-[42vh]"
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
@@ -54,7 +53,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
             >
               <Alert className="border-white/20 bg-white/15 backdrop-blur-md">
                 <AlertDescription className="text-center text-base font-semibold text-foreground">
-                  Drop your locations. We'll find the perfect spot to meet.
+                  drop your locations. we'll find the perfect spot to meet.
                 </AlertDescription>
               </Alert>
             </motion.div>
@@ -64,7 +63,6 @@ export function LandingForm({ visible }: { visible: boolean }) {
               {entries.map((entry, index) => (
                 <motion.div
                   key={entry.id}
-                  className="flex items-center gap-2"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
@@ -74,26 +72,19 @@ export function LandingForm({ visible }: { visible: boolean }) {
                     delay: 0.75 + index * 0.1,
                   }}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white">
-                    <MapPin className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex-1">
-                    <AutoComplete
-                      placeholder={
-                        index === 0
-                          ? "Person 1's address"
-                          : index === 1
-                            ? "Person 2's address"
-                            : `Person ${index + 1}'s address`
-                      }
-                      setPlaceId={(value) => handleChange(entry.id, value)}
-                      onDelete={
-                        entries.length > 2
-                          ? () => onDelete(entry.id)
-                          : undefined
-                      }
-                    />
-                  </div>
+                  <AutoComplete
+                    placeholder={
+                      index === 0
+                        ? "person 1's address"
+                        : index === 1
+                          ? "person 2's address"
+                          : `person ${index + 1}'s address`
+                    }
+                    setPlaceId={(value) => handleChange(entry.id, value)}
+                    onDelete={
+                      entries.length > 2 ? () => onDelete(entry.id) : undefined
+                    }
+                  />
                 </motion.div>
               ))}
             </div>
@@ -114,15 +105,16 @@ export function LandingForm({ visible }: { visible: boolean }) {
                 size="lg"
                 className="flex-1 bg-white/90 text-base font-semibold text-slate-800 shadow-lg backdrop-blur-sm hover:bg-white"
               >
-                Find a place to meet
+                find a place to meet
               </Button>
               <Button
                 onClick={() => setEntries((prev) => [...prev, createEntry()])}
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className="text-white/80 hover:bg-white/20 hover:text-white"
               >
                 <Plus className="h-4 w-4" />
+                add friend
               </Button>
             </motion.div>
           </div>

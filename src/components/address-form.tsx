@@ -2,10 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import { AutoComplete } from "@/components/autocomplete"
-import {
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card"
+import { CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 let nextId = 0
@@ -41,14 +38,12 @@ export function AddressForm() {
             key={entry.id}
             placeholder="Enter an address"
             setPlaceId={(value) => handleChange(entry.id, value)}
-            onDelete={
-              entries.length > 2 ? () => onDelete(entry.id) : undefined
-            }
+            onDelete={entries.length > 2 ? () => onDelete(entry.id) : undefined}
           />
         ))}
       </CardContent>
       <CardFooter className="justify-between">
-        <Button onClick={onSubmit}>Find a place to meet</Button>
+        <Button onClick={onSubmit}>find a place to meet</Button>
         <Button
           onClick={() => setEntries((prev) => [...prev, createEntry()])}
           variant="secondary"
