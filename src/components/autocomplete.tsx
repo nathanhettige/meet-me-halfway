@@ -52,11 +52,11 @@ export function AutoComplete({
           filter={null}
           onValueChange={(next) => setSearchValue(next)}
         >
-          <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-foreground" />
+          <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-slate-800/80" />
           <Autocomplete.Input
             placeholder={placeholder}
             className={cn(
-              "h-12 w-full rounded-xl border border-input bg-background py-2 pr-3 pl-10 text-base",
+              "h-12 w-full rounded-xl border border-input bg-background py-2 pr-3 pl-10 text-center text-base",
               "ring-offset-background placeholder:text-muted-foreground",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50"
