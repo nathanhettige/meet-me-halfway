@@ -87,12 +87,12 @@ export function AutoComplete({
                       key={option.value}
                       value={option}
                       className={cn(
-                        "relative flex cursor-default items-center truncate rounded-sm px-2 py-3 text-base text-[rgba(30,41,59,0.8)] outline-none select-none",
+                        "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-[rgba(30,41,59,0.8)] outline-none select-none",
                         "data-highlighted:bg-[rgba(44,173,253,0.15)]"
                       )}
                       onClick={() => setPlaceId?.(option.value)}
                     >
-                      {option.label}
+                      <span className="truncate">{option.label}</span>
                     </Autocomplete.Item>
                   )}
                 </Autocomplete.List>
