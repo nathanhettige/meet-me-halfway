@@ -195,13 +195,18 @@
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
+  color: rgba(30, 41, 59, 0.8) !important;
   font-weight: 600;
   border-radius: 0.875rem;
 }
 
 .landing-form input::placeholder {
-  color: rgba(30, 41, 59, 0.8) !important;
+  color: rgba(30, 41, 59, 0.65) !important;
+  transition: opacity 0.1s ease;
+}
+
+.landing-form input:focus::placeholder {
+  opacity: 0 !important;
 }
 
 .landing-form input:focus {
