@@ -1,150 +1,167 @@
 # AGENTS.md — Meet Me Halfway
 
-## What This App Is
+## Project Overview
 
-Meet Me Halfway is a meeting point finder. Given two or more people's
-addresses, it calculates the fairest geographic midpoint between them and
-recommends nearby venues where everyone can meet.
+Meet Me Halfway finds the fairest meeting point between two or more people
+by optimizing on actual driving time, not straight-line distance. It is
+entirely stateless — no accounts, no persistence. Enter addresses, get results.
 
-"Fair" means equal driving time, not equal straight-line distance. A river,
-mountain range, or highway layout can make the geographic center wildly unfair
-in practice. The app corrects for this by optimizing on actual travel time.
-
-The app is completely stateless — no user accounts, no saved searches, no
-authentication. Enter addresses, get results.
+**Stack:** TanStack Start (Router + React Query) on Vite + Nitro, React 19,
+Tailwind CSS v4, shadcn/ui (radix-vega), React Three Fiber (3D landing),
+Framer Motion, Google Maps APIs. Package manager is **pnpm**.
 
 ---
 
-## User Flow
+## Commands
 
-### Home Page
-
-- The user sees a form with at least two address input fields.
-- Each field provides autocomplete suggestions as the user types — results
-  appear live, not on form submission.
-- Selecting a suggestion captures a structured place identifier (not raw text)
-  so the location can be precisely resolved later.
-- The user can add more address fields dynamically (no stated maximum).
-- Any field beyond the minimum two can be individually removed.
-- Submitting the form navigates to the results page, passing the selected
-  place identifiers.
-
-### Results Page
-
-- A two-panel layout:
-  - **Left sidebar** — scrollable list of results and search statistics.
-  - **Right panel** — a full-height interactive map.
-- The page triggers the midpoint computation on load and displays results
-  once the server responds.
+| Task             | Command                                    | Notes                         |
+| ---------------- | ------------------------------------------ | ----------------------------- |
+| Dev server       | `pnpm dev`                                 | Runs on port 3002             |
+| Build            | `pnpm build`                               | Vite + Nitro production build |
+| Type check       | `pnpm typecheck`                           | `tsc --noEmit`                |
+| Lint             | `pnpm lint`                                | ESLint (TanStack config)      |
+| Format           | `pnpm format`                              | Prettier (writes in place)    |
+| All tests        | `pnpm test`                                | `vitest run`                  |
+| Single test      | `pnpm vitest run src/path/to/file.test.ts` |                               |
+| Add UI component | `pnpm dlx shadcn@latest add <name>`        | Adds to `src/components/ui/`  |
 
 ---
 
-## Address Input UX
+## Project Structure
 
-- Autocomplete queries fire as the user types (debounced, not on submit).
-- Suggestions show a display name; selecting one stores the underlying
-  place identifier for precise geocoding.
-- The input behaves like a combobox — keyboard navigable, dismissible.
-- Minimum two fields are always visible and cannot be removed.
-- An "Add" button appends a new empty field. Each extra field has its own
-  remove button.
-
----
-
-## Core Algorithm — Iterative Midpoint Optimization
-
-### Step 0: Initial Midpoint
-
-Compute the true spherical midpoint of all input locations. This means
-converting each lat/lng pair to 3D Cartesian coordinates (x, y, z),
-averaging the vectors, and converting back to lat/lng using atan2. A naive
-average of lat/lng values is incorrect near the poles and the antimeridian.
-
-### Iteration Loop (up to 10 rounds)
-
-Each iteration:
-
-1. **Find venues** near the current candidate midpoint.
-2. **Measure actual driving time** (traffic-aware) from every person's
-   starting location to the nearest venue.
-3. **Evaluate fairness:**
-   - If the absolute travel time difference is ≤ 30 seconds, stop.
-   - If the percentage travel time difference is ≤ 5%, stop.
-4. **Adjust:** Shift the candidate midpoint toward the person with the
-   longest drive. The shift is weighted by the percentage imbalance —
-   a large imbalance causes a larger shift.
-5. **Repeat** from step 1 with the new candidate.
-
-### Rural / Empty Area Fallback
-
-If no venues are found near the current candidate point (e.g., the midpoint
-falls in a forest, desert, or body of water), search for the nearest
-populated locality within 50 km and redirect the venue search there.
-
-### Best Result Tracking
-
-The algorithm tracks the most balanced result across all iterations.
-The final answer is not necessarily the last iteration — it is whichever
-iteration achieved the smallest travel time imbalance.
+```
+src/
+  routes/             File-based routing (TanStack Router)
+    __root.tsx         Root layout (QueryClientProvider, meta)
+    index.tsx          Home / landing page
+    search.tsx         Results page (sidebar + map)
+  components/
+    ui/                shadcn/ui generated components (do not hand-edit)
+    balloon-text.tsx   3D balloon text (React Three Fiber)
+    landing-form.tsx   Landing page form (Framer Motion)
+    autocomplete.tsx   Address autocomplete (@base-ui/react)
+    clouds.tsx         SVG cloud animations
+    marker-map.tsx     Google Maps with markers
+    address-form.tsx   Address form (results page)
+  hooks/
+    use-maps.ts        useAutocomplete, useSearch (React Query)
+  server/maps/
+    search.ts          Main midpoint optimization loop
+    autocomplete.ts    Google Places Autocomplete
+    calculate-midpoint.ts  Spherical midpoint (Cartesian/atan2)
+    fetch-*.ts         Google API wrappers (routes, places, etc.)
+    types.ts           Shared types (Coordinates, Place, etc.)
+  lib/utils.ts         cn() utility (clsx + tailwind-merge)
+  styles.css           Tailwind v4 config + theme + custom animations
+  routeTree.gen.ts     AUTO-GENERATED — do not edit
+```
 
 ---
 
-## Venue Search
+## Code Style
 
-- Searches for places of interest near the optimized midpoint: cafes,
-  restaurants, bars, museums, and similar gathering spots.
-- Each venue result includes: name, formatted address, and star rating.
-- The search is centered on the optimized midpoint, not the raw
-  geographic center.
+### Formatting (Prettier)
 
----
+- No semicolons
+- Double quotes (`"not 'single'"`)
+- 2-space indentation, 80-char print width
+- Trailing commas (ES5 style)
+- LF line endings
+- Tailwind class sorting via `prettier-plugin-tailwindcss`
 
-## Results Display
+### TypeScript
 
-### Search Statistics Card
+- Strict mode enabled (`noUnusedLocals`, `noUnusedParameters`, etc.)
+- `verbatimModuleSyntax: true` — always use `import type` for type-only imports
+- Use `type` (not `interface`) for object shapes
+- Use `Array<T>` (not `T[]`) — enforced by ESLint
+- Path alias: `@/*` maps to `src/*` — use it for all internal imports
 
-- Number of iterations the algorithm ran.
-- Which iteration found the best (most balanced) midpoint.
-- Absolute travel time difference (e.g., "2m 30s").
-- Percentage travel time difference.
+### Naming
 
-### Venue List
+- **Files:** kebab-case (`address-form.tsx`, `use-maps.ts`)
+- **Components:** PascalCase function declarations (`function LandingForm()`)
+- **Hooks:** camelCase with `use` prefix (`useAutocomplete`)
+- **Types:** PascalCase (`type Coordinates = { ... }`)
+- **Server functions:** camelCase (`fetchPlaceDetails`, `calculateMidpoint`)
+- **Variables/functions:** camelCase
 
-- A scrollable list of recommended nearby places.
-- Each card shows the venue name, address, and star rating.
+### Imports
 
-### Interactive Map
+Order enforced by ESLint: builtin > external > internal > parent > sibling.
 
-- Auto-fits bounds on load to contain all markers.
-- Follows system color scheme (light / dark mode).
-- Marker types:
-  - **Starting locations** — one per person, visually distinct
-    (e.g., house icon, colored glyph).
-  - **Iteration markers** — numbered markers showing each iteration's
-    candidate midpoint, so the user can see the algorithm converging.
-  - **Final marker** — a distinct marker at the recommended meeting point.
+```tsx
+import { useState, useCallback } from "react" // external
+import { useNavigate } from "@tanstack/react-router" // external
+import { MapPin } from "lucide-react" // external
+import { Button } from "@/components/ui/button" // internal (@/ alias)
+import { cn } from "@/lib/utils" // internal (@/ alias)
+import type { Coordinates } from "@/server/maps/types" // type import last
+```
 
----
+### Components
 
-## Key Design Decisions
+- Use **named exports** (not default): `export function Component() {}`
+- Props: inline `type` or standalone `type ComponentProps = { ... }`
+- Use `React.ComponentProps<"div">` for extending HTML element props
+- Use `cn()` for conditional/merged class names
+- Use `cva()` for variant-based component styling
 
-- Travel time is always real driving time with traffic awareness, never
-  straight-line or "as the crow flies" distance.
-- Spherical geometry is required for midpoint calculation — flat-earth
-  lat/lng averaging produces incorrect results at scale.
-- The map rendering API key (client-side, public) must be separate from
-  the geocoding/routing API key (server-side, secret).
-- All computation (geocoding, routing, venue search, optimization) happens
-  server-side. The client only submits place identifiers and renders results.
-- The app is entirely stateless per session — no persistence layer.
+### Error Handling
+
+- Server functions: check `response.ok`, read error body, `throw new Error()`
+  with context including status and response text
+- No try/catch in server functions — errors propagate to React Query
+- Client: React Query handles loading/error states via `isLoading`, `isError`
+
+### Styling
+
+- Tailwind CSS v4 (CSS-first config in `styles.css`, no `tailwind.config.js`)
+- Use semantic color tokens (`bg-background`, `text-muted-foreground`)
+- Use `gap-*` with flex (not `space-x-*` / `space-y-*`)
+- Use `size-*` when width and height are equal
+- All UI copy must be **lowercase** — no capital letters in user-facing text
+- Dark mode via CSS custom properties, not manual `dark:` overrides
+
+### Server Functions (TanStack Start)
+
+```tsx
+const myServerFn = createServerFn({ method: "GET" })
+  .validator((input) => input as { param: string })
+  .handler(async ({ input }) => {
+    const response = await fetch(url, {
+      headers: { "X-Goog-Api-Key": process.env.MAPS_API_KEY! },
+    })
+    if (!response.ok)
+      throw new Error(`API error ${response.status}: ${await response.text()}`)
+    return (await response.json()) as ResultType
+  })
+```
+
+### Routes (TanStack Router)
+
+- File-based routing in `src/routes/`
+- Export `Route` using `createFileRoute("/path")({ component: PageComponent })`
+- Root layout uses `createRootRoute()`
+- Search params validated with `validateSearch`
+- `src/routeTree.gen.ts` is auto-generated — never edit it
 
 ---
 
 ## Environment Variables
 
-Two API keys are required:
+Two Google Maps API keys required (see `.env.template`):
 
-- **Server-side key** — used for geocoding, route/travel-time computation,
-  and venue search. Never exposed to the browser.
-- **Client-side key** — used only for rendering the interactive map in the
-  browser. Safe to expose publicly but should be domain-restricted.
+- `MAPS_API_KEY` — server-side only. Used for geocoding, routing, place search.
+  Never exposed to the browser.
+- `VITE_GOOGLE_MAPS_API_KEY` — client-side only. Used for map rendering.
+  Accessed via `import.meta.env.VITE_GOOGLE_MAPS_API_KEY`.
+
+---
+
+## Do Not Edit
+
+- `src/routeTree.gen.ts` — auto-generated by TanStack Router
+- `src/components/ui/*` — generated by shadcn CLI; update via
+  `pnpm dlx shadcn@latest add <component> --overwrite`
+- `.output/`, `.tanstack/` — build artifacts (gitignored)
