@@ -36,7 +36,7 @@ export function MarkerMap({
       defaultCenter={{ lat: midpoint.latitude, lng: midpoint.longitude }}
       gestureHandling="greedy"
       disableDefaultUI={true}
-      className="h-screen w-full"
+      className="h-full w-full"
     >
       {coordinates.map((coord, index) => (
         <AdvancedMarker

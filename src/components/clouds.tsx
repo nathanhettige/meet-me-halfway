@@ -160,7 +160,7 @@ type CloudConfig = {
   rotate: number
 }
 
-const clouds: CloudConfig[] = [
+const clouds: Array<CloudConfig> = [
   {
     id: 1,
     top: "3%",
