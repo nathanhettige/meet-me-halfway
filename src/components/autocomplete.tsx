@@ -42,7 +42,7 @@ export function AutoComplete({
   const status = getStatus()
 
   return (
-    <div className="flex w-full gap-2">
+    <div className="flex w-full items-center gap-2">
       <div className="relative w-full">
         <Autocomplete.Root
           disabled={disabled}

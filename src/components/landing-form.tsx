@@ -78,10 +78,12 @@ export function LandingForm({ visible }: { visible: boolean }) {
                     <AutoComplete
                       placeholder={
                         index === 0
-                          ? "person 1's address"
+                          ? "1st address"
                           : index === 1
-                            ? "person 2's address"
-                            : `person ${index + 1}'s address`
+                            ? "2nd address"
+                            : index === 2
+                              ? "3rd address"
+                              : `${index + 1}th address`
                       }
                       setPlaceId={(value) => handleChange(entry.id, value)}
                       onDelete={
