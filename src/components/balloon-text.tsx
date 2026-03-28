@@ -416,9 +416,9 @@ function BalloonButton({
   const [pressed, setPressed] = useState(false)
   const scaleRef = useRef(visible ? 1 : 0)
 
-  const btnScale = size * 0.55
+  const btnScale = Math.min(size * 0.42, 0.28)
   const text = "start"
-  const textSize = btnScale * 1.1
+  const textSize = btnScale * 1.0
 
   const textWidth = useMemo(() => {
     if (!fontData) return 0
@@ -559,7 +559,7 @@ function ResponsiveScene({
   const landingMeetY = lineGap + size
   const landingMeY = 0
   const landingHalfwayY = -(lineGap + size)
-  const landingButtonY = -(lineGap + size) * 2 - size * 0.3
+  const landingButtonY = -(lineGap + size) * 2 + size * 0.1
 
   // --- Compact positions ---
   // Scale factor for the compact layout

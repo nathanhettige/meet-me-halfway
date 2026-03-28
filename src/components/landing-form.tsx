@@ -37,13 +37,13 @@ export function LandingForm({ visible }: { visible: boolean }) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center px-6 md:top-[42vh]"
+          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center px-8 md:top-[42vh] md:px-6"
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
         >
-          <div className="landing-form w-full max-w-sm md:max-w-md">
+          <div className="landing-form w-full max-w-md md:max-w-lg">
             {/* Tagline */}
             <motion.div
               className="mb-5"
