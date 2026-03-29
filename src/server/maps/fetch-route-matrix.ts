@@ -1,8 +1,8 @@
-type RouteMatrixResult = {
+export type RouteMatrixResult = {
   originIndex: number
   destinationIndex: number
-  distanceMeters: number
-  duration: string
+  distanceMeters?: number
+  duration?: string
   condition: string
   status: Record<string, never>
 }
@@ -13,7 +13,7 @@ function stripPlacesPrefix(id: string): string {
 
 export async function fetchRouteMatrix(
   originPlaceIds: Array<string>,
-  destinationPlaceId: string
+  destinationPlaceIds: Array<string>
 ): Promise<Array<RouteMatrixResult>> {
   const response = await fetch(
     "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix",
@@ -29,11 +29,9 @@ export async function fetchRouteMatrix(
         origins: originPlaceIds.map((placeId) => ({
           waypoint: { placeId: stripPlacesPrefix(placeId) },
         })),
-        destinations: [
-          {
-            waypoint: { placeId: stripPlacesPrefix(destinationPlaceId) },
-          },
-        ],
+        destinations: destinationPlaceIds.map((placeId) => ({
+          waypoint: { placeId: stripPlacesPrefix(placeId) },
+        })),
         travelMode: "DRIVE",
         routingPreference: "TRAFFIC_AWARE",
       }),

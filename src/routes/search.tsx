@@ -71,9 +71,7 @@ function SearchPage() {
                 <span className="text-sm">{data.iterations.length}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  Found on Iteration:
-                </span>
+                <span className="text-sm font-medium">Found on Iteration:</span>
                 <span className="text-sm">
                   {data.performance.foundOnIteration}
                 </span>
@@ -88,11 +86,28 @@ function SearchPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  Time Difference %:
-                </span>
+                <span className="text-sm font-medium">Time Difference %:</span>
                 <span className="text-sm">
                   {data.performance.percentageDiff.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">threshold (time):</span>
+                <span className="text-sm">
+                  {Math.floor(
+                    data.performance.thresholds.maxTimeDiffSeconds / 60
+                  )}
+                  m{" "}
+                  {Math.round(
+                    data.performance.thresholds.maxTimeDiffSeconds % 60
+                  )}
+                  s
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">threshold (%):</span>
+                <span className="text-sm">
+                  {data.performance.thresholds.maxPercentageDiff.toFixed(1)}%
                 </span>
               </div>
             </CardContent>
@@ -112,9 +127,7 @@ function SearchPage() {
         </div>
       </ScrollArea>
 
-      <APIProvider
-        apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ""}
-      >
+      <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ""}>
         <MarkerMap
           coordinates={data.coordinates}
           midpoint={data.midpoint}

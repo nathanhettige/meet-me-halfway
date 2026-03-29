@@ -8,7 +8,8 @@ type CityResult = {
 }
 
 export async function fetchNearbyCities(
-  coordinates: Coordinates
+  coordinates: Coordinates,
+  radiusMeters = 50000
 ): Promise<Array<CityResult>> {
   const response = await fetch(
     "https://places.googleapis.com/v1/places:searchNearby",
@@ -29,7 +30,7 @@ export async function fetchNearbyCities(
               latitude: coordinates.latitude,
               longitude: coordinates.longitude,
             },
-            radius: 50000,
+            radius: radiusMeters,
           },
         },
         rankPreference: "DISTANCE",

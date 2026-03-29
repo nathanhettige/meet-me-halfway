@@ -3,12 +3,22 @@ export type Coordinates = {
   longitude: number
 }
 
+export type ConvergenceThresholds = {
+  maxTimeDiffSeconds: number
+  maxPercentageDiff: number
+  maxIterations: number
+  averageTravelTime: number
+}
+
 export type IterationResult = {
   midpoint: Coordinates
   timeDifference: number
   percentageDiff: number
   isBest: boolean
   iteration: number
+  candidatesTested?: number
+  travelTimes?: Array<number>
+  thresholds?: ConvergenceThresholds
 }
 
 export type Place = {
@@ -26,6 +36,12 @@ export type Place = {
   types: Array<string>
 }
 
+export type SnapResult = {
+  location: Coordinates
+  snapDistanceKm: number
+  cityName: string
+}
+
 export type SearchResult = {
   coordinates: Array<Coordinates>
   midpoint: Coordinates
@@ -35,5 +51,12 @@ export type SearchResult = {
     foundOnIteration: number
     timeDifference: number
     percentageDiff: number
+    thresholds: ConvergenceThresholds
+  }
+  snap?: {
+    originalCentroid: Coordinates
+    snappedTo: Coordinates
+    snapDistanceKm: number
+    cityName: string
   }
 }

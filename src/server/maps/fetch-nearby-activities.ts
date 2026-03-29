@@ -1,7 +1,8 @@
 import type { Coordinates, Place } from "./types"
 
 export async function fetchNearbyActivities(
-  coordinates: Coordinates
+  coordinates: Coordinates,
+  maxResults = 20
 ): Promise<Array<Place>> {
   const response = await fetch(
     "https://places.googleapis.com/v1/places:searchNearby",
@@ -28,6 +29,7 @@ export async function fetchNearbyActivities(
           "tourist_attraction",
           "bowling_alley",
         ],
+        maxResultCount: maxResults,
         locationRestriction: {
           circle: {
             center: {
