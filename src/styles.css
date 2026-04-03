@@ -49,6 +49,8 @@
 }
 
 :root {
+  --sky-blue: rgb(44, 173, 253);
+  --sky-blue-dark: rgb(60, 133, 190);
   --background: oklch(1 0 0);
   --foreground: oklch(0.279 0.041 260.031);
   --card: oklch(1 0 0);

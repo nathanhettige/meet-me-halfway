@@ -21,6 +21,12 @@ export type IterationResult = {
   thresholds?: ConvergenceThresholds
 }
 
+export type PlacePhoto = {
+  name: string
+  widthPx: number
+  heightPx: number
+}
+
 export type Place = {
   id: string
   formattedAddress: string
@@ -34,6 +40,7 @@ export type Place = {
     weekdayDescriptions: Array<string>
   }
   types: Array<string>
+  photos?: Array<PlacePhoto>
 }
 
 export type SnapResult = {
