@@ -1,7 +1,12 @@
 import { useEffect } from "react"
 import { AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps"
-import { ChevronDown, ChevronUp, Home, MapPin, Map as MapIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import {
+  ChevronDown,
+  ChevronUp,
+  Home,
+  Map as MapIcon,
+  MapPin,
+} from "lucide-react"
 import type { Coordinates, Place } from "@/server/maps/types"
 import { cn } from "@/lib/utils"
 
@@ -17,7 +22,6 @@ type MiniMapProps = {
 export function MiniMap({
   coordinates,
   midpoint,
-  places,
   isExpanded,
   onToggleExpand,
 }: MiniMapProps) {
@@ -68,23 +72,23 @@ export function MiniMap({
           <AdvancedMarker
             position={{ lat: midpoint.latitude, lng: midpoint.longitude }}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary shadow-lg">
-              <MapPin className="h-4 w-4 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-sky-blue shadow-lg">
+              <MapPin className="h-4 w-4 text-white" />
             </div>
           </AdvancedMarker>
         </Map>
       </div>
 
       {/* Top info bar */}
-      <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm">
-        <MapIcon className="h-3 w-3 text-primary" />
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm">
+        <MapIcon className="h-3 w-3 text-sky-blue" />
         <span>{coordinates.length} starting points</span>
       </div>
 
       {/* Expand/collapse toggle */}
       <button
         onClick={onToggleExpand}
-        className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-gradient-to-t from-background/95 via-background/80 to-transparent py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-1 bg-gradient-to-t from-background/95 via-background/80 to-transparent py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {isExpanded ? (
           <>

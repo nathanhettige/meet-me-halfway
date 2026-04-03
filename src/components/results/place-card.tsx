@@ -1,5 +1,7 @@
-import { Star, ChevronRight, MapPin } from "lucide-react"
+import { ChevronRight, MapPin, Star } from "lucide-react"
 import type { Place } from "@/server/maps/types"
+import { Skeleton } from "@/components/ui/skeleton"
+import { usePlacePhoto } from "@/hooks/use-maps"
 
 type PlaceCardProps = {
   place: Place
@@ -18,6 +20,9 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
   const fullStars = Math.floor(rating)
   const hasHalfStar = rating % 1 >= 0.5
 
+  const firstPhoto = place.photos?.[0]
+  const photoQuery = usePlacePhoto(firstPhoto)
+
   return (
     <button
       onClick={onSelect}
@@ -27,13 +32,13 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
       <div className="min-w-0 flex-1">
         {/* Category pill */}
         {category && (
-          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary uppercase">
             {category}
           </span>
         )}
 
         {/* Place name */}
-        <h3 className="text-balance text-[17px] font-bold leading-snug text-foreground">
+        <h3 className="text-[17px] leading-snug font-bold text-balance text-foreground">
           {place.displayName.text}
         </h3>
 
@@ -65,11 +70,23 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
         </div>
       </div>
 
-      {/* Arrow indicator */}
-      <div className="flex h-full flex-shrink-0 items-center self-center">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-primary/10">
-          <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
-        </div>
+      {/* Right side: photo thumbnail or chevron fallback */}
+      <div className="flex flex-shrink-0 items-center self-center">
+        {photoQuery.data ? (
+          <div className="size-20 overflow-hidden rounded-xl">
+            <img
+              src={photoQuery.data}
+              alt={place.displayName.text}
+              className="size-full object-cover transition-transform group-hover:scale-105"
+            />
+          </div>
+        ) : photoQuery.isLoading ? (
+          <Skeleton className="size-20 rounded-xl" />
+        ) : (
+          <div className="flex size-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-primary/10">
+            <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+          </div>
+        )}
       </div>
     </button>
   )
@@ -78,7 +95,7 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
 function extractSuburb(address: string): string {
   // Split by comma and get meaningful parts
   const parts = address.split(",").map((p) => p.trim())
-  
+
   // Usually format is: Street, Suburb, State PostCode, Country
   // We want the suburb (second part) or the first part if only one
   if (parts.length >= 2) {
@@ -90,7 +107,7 @@ function extractSuburb(address: string): string {
 
 function formatPlaceType(type?: string): string {
   if (!type) return ""
-  
+
   // Convert snake_case to Title Case and handle common types
   const typeMap: Record<string, string> = {
     restaurant: "Restaurant",

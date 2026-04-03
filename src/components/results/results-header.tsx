@@ -1,4 +1,5 @@
-import { ArrowLeft, Share2, MapPin } from "lucide-react"
+import { ArrowLeft, MapPin, Share2 } from "lucide-react"
+import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 
 type ResultsHeaderProps = {
@@ -13,7 +14,9 @@ export function ResultsHeader({
   onBack,
 }: ResultsHeaderProps) {
   const handleShare = async () => {
-    if (navigator.share) {
+    // navigator.share may not exist in all browsers
+    const canShare = typeof navigator.share === "function"
+    if (canShare) {
       try {
         await navigator.share({
           title: `Meet halfway in ${cityName}`,
@@ -31,6 +34,16 @@ export function ResultsHeader({
 
   return (
     <header className="sticky top-0 z-20 bg-background">
+      {/* Logo bar */}
+      <div className="flex items-center justify-center border-b border-border/40 px-4 py-2">
+        <Link to="/" className="group flex items-center gap-1.5">
+          <span className="text-sm font-bold tracking-tight text-sky-blue">
+            meet me halfway
+          </span>
+        </Link>
+      </div>
+
+      {/* Navigation bar */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
@@ -44,11 +57,11 @@ export function ResultsHeader({
           </Button>
           <div>
             <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-primary" />
+              <MapPin className="h-4 w-4 text-sky-blue" />
               <h1 className="text-lg font-bold text-foreground">{cityName}</h1>
             </div>
             <p className="text-xs text-muted-foreground">
-              Meeting point for everyone
+              meeting point for everyone
             </p>
           </div>
         </div>

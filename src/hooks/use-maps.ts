@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { SearchResult } from "@/server/maps/types"
+import type { PlacePhoto, SearchResult } from "@/server/maps/types"
 import { autocomplete } from "@/server/maps/autocomplete"
 import { search } from "@/server/maps/search"
+import { fetchPlacePhoto } from "@/server/maps/fetch-place-photo"
 
 function useDebouncedValue(value: string, delay = 300) {
   const [debounced, setDebounced] = useState(value)
@@ -38,6 +39,18 @@ export function useSearch(placeIds: Array<string>) {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    staleTime: Infinity,
+  })
+}
+
+export function usePlacePhoto(photo: PlacePhoto | undefined) {
+  return useQuery<string>({
+    enabled: !!photo,
+    queryKey: ["place-photo", photo?.name],
+    queryFn: () =>
+      fetchPlacePhoto({ data: { photoName: photo!.name, maxWidthPx: 400 } }),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     staleTime: Infinity,
   })
 }

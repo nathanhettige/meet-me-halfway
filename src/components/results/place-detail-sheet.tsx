@@ -1,14 +1,16 @@
-import { Star, MapPin, Clock, ExternalLink, Navigation } from "lucide-react"
+import { Clock, ExternalLink, MapPin, Navigation, Star } from "lucide-react"
+import type { Place } from "@/server/maps/types"
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { Place } from "@/server/maps/types"
+import { usePlacePhoto } from "@/hooks/use-maps"
 
 type PlaceDetailSheetProps = {
   place: Place | null
@@ -16,6 +18,9 @@ type PlaceDetailSheetProps = {
 }
 
 export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
+  const firstPhoto = place?.photos?.[0]
+  const photoQuery = usePlacePhoto(firstPhoto)
+
   if (!place) return null
 
   const suburb = extractSuburb(place.formattedAddress)
@@ -37,7 +42,20 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   return (
     <Drawer open={!!place} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="max-h-[90svh]">
-        <DrawerHeader className="pb-3 pt-4">
+        {/* Hero photo */}
+        {photoQuery.data ? (
+          <div className="mx-4 mt-2 overflow-hidden rounded-xl">
+            <img
+              src={photoQuery.data}
+              alt={place.displayName.text}
+              className="h-48 w-full object-cover"
+            />
+          </div>
+        ) : photoQuery.isLoading ? (
+          <Skeleton className="mx-4 mt-2 h-48 rounded-xl" />
+        ) : null}
+
+        <DrawerHeader className="pt-4 pb-3">
           {/* Category pills */}
           {place.types.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5">
@@ -49,7 +67,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
                 .map((type) => (
                   <span
                     key={type}
-                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary"
+                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary uppercase"
                   >
                     {formatPlaceType(type)}
                   </span>
@@ -57,7 +75,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
             </div>
           )}
 
-          <DrawerTitle className="text-balance text-left text-2xl font-bold">
+          <DrawerTitle className="text-left text-2xl font-bold text-balance">
             {place.displayName.text}
           </DrawerTitle>
 
