@@ -32,7 +32,7 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
       <div className="min-w-0 flex-1">
         {/* Category pill */}
         {category && (
-          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary uppercase">
+          <span className="mb-2 inline-block rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase">
             {category}
           </span>
         )}
