@@ -12,7 +12,7 @@ export async function fetchNearbyActivities(
         "Content-Type": "application/json",
         "X-Goog-Api-Key": process.env.MAPS_API_KEY!,
         "X-Goog-FieldMask":
-          "places.id,places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions,places.types",
+          "places.id,places.displayName.text,places.formattedAddress,places.rating,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.weekdayDescriptions,places.types,places.photos",
       },
       body: JSON.stringify({
         includedTypes: [

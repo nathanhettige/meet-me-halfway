@@ -2,12 +2,14 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useCallback, useState } from "react"
 import { CloudBackground } from "@/components/clouds"
 import { BalloonText } from "@/components/balloon-text"
-import { LandingForm } from "@/components/landing-form"
+import { LandingForm, hasPersistedFormData } from "@/components/landing-form"
 
 export const Route = createFileRoute("/")({ component: HomePage })
 
 function HomePage() {
-  const [started, setStarted] = useState(false)
+  // If the user is returning from the results page, skip the intro
+  const returning = hasPersistedFormData()
+  const [started, setStarted] = useState(returning)
 
   const handleStart = useCallback(() => {
     setStarted(true)
@@ -51,7 +53,7 @@ function HomePage() {
       />
       <CloudBackground />
       <BalloonText started={started} onStart={handleStart} />
-      <LandingForm visible={started} />
+      <LandingForm visible={started} returning={returning} />
     </div>
   )
 }
