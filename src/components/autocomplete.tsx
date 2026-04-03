@@ -14,17 +14,19 @@ type Option = {
 type AutoCompleteProps = {
   disabled?: boolean
   placeholder?: string
-  setPlaceId?: (placeId: string) => void
+  defaultValue?: string
+  setPlaceId?: (placeId: string, label: string) => void
   onDelete?: () => void
 }
 
 export function AutoComplete({
   placeholder,
   disabled,
+  defaultValue,
   setPlaceId,
   onDelete,
 }: AutoCompleteProps) {
-  const [searchValue, setSearchValue] = useState("")
+  const [searchValue, setSearchValue] = useState(defaultValue ?? "")
 
   const { data, isDebouncing, isLoading } = useAutocomplete(searchValue)
 
@@ -90,7 +92,7 @@ export function AutoComplete({
                         "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-[rgba(30,41,59,0.8)] outline-none select-none",
                         "data-highlighted:bg-[rgba(44,173,253,0.15)]"
                       )}
-                      onClick={() => setPlaceId?.(option.value)}
+                      onClick={() => setPlaceId?.(option.value, option.label)}
                     >
                       <span className="truncate">{option.label}</span>
                     </Autocomplete.Item>

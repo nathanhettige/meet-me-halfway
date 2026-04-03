@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "framer-motion"
 import { Plus } from "lucide-react"
@@ -6,32 +6,77 @@ import { AutoComplete } from "@/components/autocomplete"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-let nextId = 0
-function createEntry(placeId = "") {
-  return { id: `entry-${Date.now()}-${nextId++}`, placeId }
+type FormEntry = {
+  id: string
+  placeId: string
+  label: string
 }
 
-export function LandingForm({ visible }: { visible: boolean }) {
-  const navigate = useNavigate()
-  const [entries, setEntries] = useState(() => [createEntry(), createEntry()])
+let nextId = 0
+function createEntry(placeId = "", label = ""): FormEntry {
+  return { id: `entry-${Date.now()}-${nextId++}`, placeId, label }
+}
 
-  const handleChange = useCallback((entryId: string, value: string) => {
-    setEntries((prev) =>
-      prev.map((e) => (e.id === entryId ? { ...e, placeId: value } : e))
-    )
-  }, [])
+// Module-level store so form state survives route navigations
+let persistedEntries: Array<FormEntry> | null = null
+
+/** Returns true if the user has previously filled out the form */
+export function hasPersistedFormData(): boolean {
+  return persistedEntries !== null && persistedEntries.some((e) => e.placeId)
+}
+
+export function LandingForm({
+  visible,
+  returning,
+}: {
+  visible: boolean
+  returning: boolean
+}) {
+  const navigate = useNavigate()
+  const [entries, setEntries] = useState<Array<FormEntry>>(() => {
+    if (persistedEntries) return persistedEntries
+    return [createEntry(), createEntry()]
+  })
+
+  // Keep the persisted store in sync
+  const entriesRef = useRef(entries)
+  entriesRef.current = entries
+  if (visible) {
+    persistedEntries = entries
+  }
+
+  const handleChange = useCallback(
+    (entryId: string, placeId: string, label: string) => {
+      setEntries((prev) => {
+        const next = prev.map((e) =>
+          e.id === entryId ? { ...e, placeId, label } : e
+        )
+        persistedEntries = next
+        return next
+      })
+    },
+    []
+  )
 
   const onDelete = useCallback((entryId: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== entryId))
+    setEntries((prev) => {
+      const next = prev.filter((e) => e.id !== entryId)
+      persistedEntries = next
+      return next
+    })
   }, [])
 
   const onSubmit = useCallback(() => {
-    const validIds = entries.map((e) => e.placeId).filter(Boolean)
+    const validIds = entriesRef.current.map((e) => e.placeId).filter(Boolean)
     if (validIds.length < 2) return
     navigate({ to: "/results", search: { placeIds: validIds.join(",") } })
-  }, [entries, navigate])
+  }, [navigate])
 
   const hasEnoughPlaces = entries.filter((e) => e.placeId).length >= 2
+
+  // When returning from results, skip entrance animation delays
+  const delay = returning ? 0 : 0.3
+  const staggerBase = returning ? 0 : 0.75
 
   return (
     <AnimatePresence>
@@ -41,7 +86,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay }}
         >
           <div className="landing-form w-full max-w-md md:max-w-lg">
             {/* Tagline */}
@@ -49,7 +94,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
               className="mb-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
+              transition={{ duration: 0.5, delay: delay + 0.3 }}
             >
               <Alert className="border-0 bg-white/15 backdrop-blur-xl">
                 <AlertDescription className="text-center text-base font-bold text-slate-800/80">
@@ -72,7 +117,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
                     transition={{
                       duration: 0.5,
                       ease: [0.22, 1, 0.36, 1],
-                      delay: 0.75 + index * 0.1,
+                      delay: staggerBase + index * 0.1,
                     }}
                   >
                     <AutoComplete
@@ -85,7 +130,10 @@ export function LandingForm({ visible }: { visible: boolean }) {
                               ? "3rd address"
                               : `${index + 1}th address`
                       }
-                      setPlaceId={(value) => handleChange(entry.id, value)}
+                      defaultValue={entry.label}
+                      setPlaceId={(placeId, label) =>
+                        handleChange(entry.id, placeId, label)
+                      }
                       onDelete={
                         entries.length > 2
                           ? () => onDelete(entry.id)
@@ -103,7 +151,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.5,
-                  delay: 0.95 + entries.length * 0.1,
+                  delay: staggerBase + 0.2 + entries.length * 0.1,
                 }}
               >
                 <Button
