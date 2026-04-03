@@ -28,7 +28,7 @@ export function LandingForm({ visible }: { visible: boolean }) {
   const onSubmit = useCallback(() => {
     const validIds = entries.map((e) => e.placeId).filter(Boolean)
     if (validIds.length < 2) return
-    navigate({ to: "/search", search: { placeIds: validIds.join(",") } })
+    navigate({ to: "/results", search: { placeIds: validIds.join(",") } })
   }, [entries, navigate])
 
   const hasEnoughPlaces = entries.filter((e) => e.placeId).length >= 2
