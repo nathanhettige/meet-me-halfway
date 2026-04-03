@@ -33,11 +33,11 @@ export function ResultsHeader({
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-background">
+    <header className="sticky top-0 z-20 bg-white/15 backdrop-blur-xl">
       {/* Logo bar */}
-      <div className="flex items-center justify-center border-b border-border/40 px-4 py-2">
+      <div className="flex items-center justify-center border-b border-white/20 px-4 py-2">
         <Link to="/" className="group flex items-center gap-1.5">
-          <span className="text-sm font-bold tracking-tight text-sky-blue">
+          <span className="text-sm font-bold tracking-tight text-white">
             meet me halfway
           </span>
         </Link>
@@ -50,19 +50,17 @@ export function ResultsHeader({
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-10 w-10 rounded-full bg-muted/50"
+            className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
             <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-sky-blue" />
-              <h1 className="text-lg font-bold text-foreground">{cityName}</h1>
+              <MapPin className="h-4 w-4 text-white" />
+              <h1 className="text-lg font-bold text-white">{cityName}</h1>
             </div>
-            <p className="text-xs text-muted-foreground">
-              meeting point for everyone
-            </p>
+            <p className="text-xs text-white/70">meeting point for everyone</p>
           </div>
         </div>
 
@@ -70,7 +68,7 @@ export function ResultsHeader({
           variant="ghost"
           size="icon"
           onClick={handleShare}
-          className="h-10 w-10 rounded-full bg-muted/50"
+          className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30"
           aria-label="Share results"
         >
           <Share2 className="h-5 w-5" />

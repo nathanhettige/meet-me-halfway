@@ -26,24 +26,24 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
   return (
     <button
       onClick={onSelect}
-      className="group flex w-full items-start gap-4 rounded-2xl bg-card p-4 text-left shadow-sm ring-1 ring-border/50 transition-all active:scale-[0.98]"
+      className="group flex w-full items-start gap-4 rounded-2xl bg-white/15 p-4 text-left shadow-sm ring-1 ring-white/20 backdrop-blur-xl transition-all active:scale-[0.98]"
     >
       {/* Left content */}
       <div className="min-w-0 flex-1">
         {/* Category pill */}
         {category && (
-          <span className="mb-2 inline-block rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase">
+          <span className="mb-2 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
             {category}
           </span>
         )}
 
         {/* Place name */}
-        <h3 className="text-[17px] leading-snug font-bold text-balance text-foreground">
+        <h3 className="text-[17px] leading-snug font-bold text-balance text-white">
           {place.displayName.text}
         </h3>
 
         {/* Location */}
-        <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <div className="mt-1.5 flex items-center gap-1.5 text-sm text-white/70">
           <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
           <span className="truncate">{suburb}</span>
         </div>
@@ -59,12 +59,12 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
                     ? "fill-amber-400 text-amber-400"
                     : i === fullStars && hasHalfStar
                       ? "fill-amber-400/50 text-amber-400"
-                      : "fill-muted text-muted"
+                      : "fill-white/20 text-white/20"
                 }`}
               />
             ))}
           </div>
-          <span className="text-sm font-semibold text-foreground">
+          <span className="text-sm font-semibold text-white">
             {rating ? rating.toFixed(1) : "N/A"}
           </span>
         </div>
@@ -83,8 +83,8 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
         ) : photoQuery.isLoading ? (
           <Skeleton className="size-20 rounded-xl" />
         ) : (
-          <div className="flex size-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-primary/10">
-            <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-white/20 transition-colors group-hover:bg-white/30">
+            <ChevronRight className="h-4 w-4 text-white/70 transition-colors group-hover:text-white" />
           </div>
         )}
       </div>

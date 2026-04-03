@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { MapPin } from "lucide-react"
 import type { Place } from "@/server/maps/types"
 import { useSearch } from "@/hooks/use-maps"
+import { CloudBackground } from "@/components/clouds"
 import { ResultsHeader } from "@/components/results/results-header"
 import { MiniMap } from "@/components/results/mini-map"
 import { PlaceCard } from "@/components/results/place-card"
@@ -45,22 +46,25 @@ function ResultsPage() {
   const isLoading = !searchResult.data
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <ResultsLoadingScreen key="loading" />
-        ) : (
-          <ResultsContent
-            key="results"
-            data={searchResult.data}
-            selectedPlace={selectedPlace}
-            setSelectedPlace={setSelectedPlace}
-            isMapExpanded={isMapExpanded}
-            setIsMapExpanded={setIsMapExpanded}
-            onBack={() => navigate({ to: "/" })}
-          />
-        )}
-      </AnimatePresence>
+    <div className="sky-gradient relative flex min-h-svh flex-col overflow-hidden">
+      <CloudBackground />
+      <div className="relative z-10 flex min-h-svh flex-col">
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <ResultsLoadingScreen key="loading" />
+          ) : (
+            <ResultsContent
+              key="results"
+              data={searchResult.data}
+              selectedPlace={selectedPlace}
+              setSelectedPlace={setSelectedPlace}
+              isMapExpanded={isMapExpanded}
+              setIsMapExpanded={setIsMapExpanded}
+              onBack={() => navigate({ to: "/" })}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
@@ -93,7 +97,7 @@ function ResultsLoadingScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
       >
-        <span className="text-lg font-bold tracking-tight text-sky-blue">
+        <span className="text-lg font-bold tracking-tight text-white">
           meet me halfway
         </span>
       </motion.div>
@@ -107,12 +111,12 @@ function ResultsLoadingScreen() {
       >
         {/* Pulsing rings */}
         <motion.div
-          className="absolute inset-0 m-auto size-12 rounded-full bg-sky-blue/20"
+          className="absolute inset-0 m-auto size-12 rounded-full bg-white/20"
           animate={{ scale: [1, 2.5], opacity: [0.4, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
         />
         <motion.div
-          className="absolute inset-0 m-auto size-12 rounded-full bg-sky-blue/15"
+          className="absolute inset-0 m-auto size-12 rounded-full bg-white/15"
           animate={{ scale: [1, 2.5], opacity: [0.3, 0] }}
           transition={{
             duration: 2,
@@ -123,8 +127,8 @@ function ResultsLoadingScreen() {
         />
 
         {/* Pin icon */}
-        <div className="relative flex size-12 items-center justify-center rounded-full bg-sky-blue shadow-lg shadow-sky-blue/25">
-          <MapPin className="size-6 text-white" />
+        <div className="relative flex size-12 items-center justify-center rounded-full bg-white shadow-lg shadow-white/25">
+          <MapPin className="size-6 text-sky-blue" />
         </div>
       </motion.div>
 
@@ -133,7 +137,7 @@ function ResultsLoadingScreen() {
         <AnimatePresence mode="wait">
           <motion.p
             key={messageIndex}
-            className="text-center text-sm font-medium text-muted-foreground"
+            className="text-center text-sm font-medium text-white/80"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -153,8 +157,8 @@ function ResultsLoadingScreen() {
             animate={{
               backgroundColor:
                 i <= messageIndex
-                  ? "rgb(44, 173, 253)"
-                  : "rgb(44, 173, 253, 0.2)",
+                  ? "rgba(255, 255, 255, 1)"
+                  : "rgba(255, 255, 255, 0.3)",
               scale: i === messageIndex ? 1.3 : 1,
             }}
             transition={{ duration: 0.3 }}
@@ -230,10 +234,8 @@ function ResultsContent({
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
         >
           <div>
-            <h2 className="text-xl font-bold text-foreground">
-              places to meet
-            </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <h2 className="text-xl font-bold text-white">places to meet</h2>
+            <p className="mt-0.5 text-sm text-white/70">
               {data.places.length} spots found nearby
             </p>
           </div>
