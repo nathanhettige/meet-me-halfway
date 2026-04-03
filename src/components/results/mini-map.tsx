@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps"
-import { ChevronDown, ChevronUp, Home, MapPin } from "lucide-react"
+import { ChevronDown, ChevronUp, Home, MapPin, Map as MapIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Coordinates, Place } from "@/server/maps/types"
 import { cn } from "@/lib/utils"
@@ -36,11 +36,11 @@ export function MiniMap({
   }, [map, coordinates, midpoint])
 
   return (
-    <div className="relative">
+    <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl ring-1 ring-border/50">
       <div
         className={cn(
-          "w-full overflow-hidden transition-all duration-300",
-          isExpanded ? "h-72" : "h-32"
+          "w-full overflow-hidden transition-all duration-300 ease-out",
+          isExpanded ? "h-64" : "h-28"
         )}
       >
         <Map
@@ -58,8 +58,8 @@ export function MiniMap({
               key={`origin-${index}`}
               position={{ lat: coord.latitude, lng: coord.longitude }}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-red-500 shadow-lg">
-                <Home className="h-4 w-4 text-white" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 shadow-lg">
+                <Home className="h-3.5 w-3.5 text-white" />
               </div>
             </AdvancedMarker>
           ))}
@@ -68,37 +68,36 @@ export function MiniMap({
           <AdvancedMarker
             position={{ lat: midpoint.latitude, lng: midpoint.longitude }}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-primary shadow-lg">
-              <MapPin className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary shadow-lg">
+              <MapPin className="h-4 w-4 text-primary-foreground" />
             </div>
           </AdvancedMarker>
         </Map>
       </div>
 
-      {/* Expand/collapse button */}
-      <Button
-        variant="secondary"
-        size="sm"
+      {/* Top info bar */}
+      <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm">
+        <MapIcon className="h-3 w-3 text-primary" />
+        <span>{coordinates.length} starting points</span>
+      </div>
+
+      {/* Expand/collapse toggle */}
+      <button
         onClick={onToggleExpand}
-        className="absolute bottom-2 left-1/2 -translate-x-1/2 gap-1 rounded-full px-3 py-1 text-xs shadow-md"
+        className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-gradient-to-t from-background/95 via-background/80 to-transparent py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {isExpanded ? (
           <>
-            <ChevronUp className="h-3 w-3" />
-            <span>Less</span>
+            <ChevronUp className="h-4 w-4" />
+            <span>Collapse map</span>
           </>
         ) : (
           <>
-            <ChevronDown className="h-3 w-3" />
-            <span>More</span>
+            <ChevronDown className="h-4 w-4" />
+            <span>Expand map</span>
           </>
         )}
-      </Button>
-
-      {/* Place count badge */}
-      <div className="absolute right-3 top-3 rounded-full bg-background/90 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm">
-        {places.length} spots nearby
-      </div>
+      </button>
     </div>
   )
 }

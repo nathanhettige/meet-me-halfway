@@ -1,6 +1,5 @@
 import { Star, ChevronRight, MapPin } from "lucide-react"
 import type { Place } from "@/server/maps/types"
-import { cn } from "@/lib/utils"
 
 type PlaceCardProps = {
   place: Place
@@ -10,44 +9,68 @@ type PlaceCardProps = {
 export function PlaceCard({ place, onSelect }: PlaceCardProps) {
   // Extract suburb from the formatted address (usually after first comma)
   const suburb = extractSuburb(place.formattedAddress)
-  
+
   // Get category from place types
   const category = formatPlaceType(place.types[0])
+
+  // Generate star display
+  const rating = place.rating || 0
+  const fullStars = Math.floor(rating)
+  const hasHalfStar = rating % 1 >= 0.5
 
   return (
     <button
       onClick={onSelect}
-      className="group flex w-full items-center gap-3 rounded-xl bg-card p-4 text-left shadow-sm ring-1 ring-border transition-all hover:shadow-md hover:ring-primary/30 active:scale-[0.98]"
+      className="group flex w-full items-start gap-4 rounded-2xl bg-card p-4 text-left shadow-sm ring-1 ring-border/50 transition-all active:scale-[0.98]"
     >
-      {/* Rating badge */}
-      <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-lg bg-accent">
-        <div className="flex items-center gap-0.5">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-bold text-foreground">
-            {place.rating?.toFixed(1) || "—"}
-          </span>
-        </div>
-        <span className="text-[10px] text-muted-foreground">rating</span>
-      </div>
-
-      {/* Content */}
+      {/* Left content */}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-base font-semibold text-foreground">
-          {place.displayName.text}
-        </h3>
-        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">{suburb}</span>
-        </div>
+        {/* Category pill */}
         {category && (
-          <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
             {category}
           </span>
         )}
+
+        {/* Place name */}
+        <h3 className="text-balance text-[17px] font-bold leading-snug text-foreground">
+          {place.displayName.text}
+        </h3>
+
+        {/* Location */}
+        <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+          <span className="truncate">{suburb}</span>
+        </div>
+
+        {/* Star rating row */}
+        <div className="mt-2.5 flex items-center gap-2">
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${
+                  i < fullStars
+                    ? "fill-amber-400 text-amber-400"
+                    : i === fullStars && hasHalfStar
+                      ? "fill-amber-400/50 text-amber-400"
+                      : "fill-muted text-muted"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-sm font-semibold text-foreground">
+            {rating ? rating.toFixed(1) : "N/A"}
+          </span>
+        </div>
       </div>
 
-      {/* Arrow */}
-      <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      {/* Arrow indicator */}
+      <div className="flex h-full flex-shrink-0 items-center self-center">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-primary/10">
+          <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+        </div>
+      </div>
     </button>
   )
 }

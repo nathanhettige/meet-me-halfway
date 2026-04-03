@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2 } from "lucide-react"
+import { ArrowLeft, Share2, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type ResultsHeaderProps = {
@@ -30,24 +30,25 @@ export function ResultsHeader({
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 bg-background">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-9 w-9 rounded-full"
+            className="h-10 w-10 rounded-full bg-muted/50"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-base font-semibold text-foreground">
-              {cityName}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Your halfway point
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 text-primary" />
+              <h1 className="text-lg font-bold text-foreground">{cityName}</h1>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Meeting point for everyone
             </p>
           </div>
         </div>
@@ -56,7 +57,7 @@ export function ResultsHeader({
           variant="ghost"
           size="icon"
           onClick={handleShare}
-          className="h-9 w-9 rounded-full"
+          className="h-10 w-10 rounded-full bg-muted/50"
           aria-label="Share results"
         >
           <Share2 className="h-5 w-5" />

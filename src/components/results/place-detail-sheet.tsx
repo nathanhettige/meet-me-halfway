@@ -19,6 +19,9 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   if (!place) return null
 
   const suburb = extractSuburb(place.formattedAddress)
+  const rating = place.rating || 0
+  const fullStars = Math.floor(rating)
+  const hasHalfStar = rating % 1 >= 0.5
 
   const handleDirections = () => {
     // Open in Google Maps app or browser
@@ -33,48 +36,79 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
 
   return (
     <Drawer open={!!place} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[85svh]">
-        <DrawerHeader className="pb-2">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <DrawerTitle className="text-left text-xl">
-                {place.displayName.text}
-              </DrawerTitle>
-              <DrawerDescription className="mt-1 flex items-center gap-1 text-left">
-                <MapPin className="h-3 w-3" />
-                {suburb}
-              </DrawerDescription>
+      <DrawerContent className="max-h-[90svh]">
+        <DrawerHeader className="pb-3 pt-4">
+          {/* Category pills */}
+          {place.types.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {place.types
+                .filter(
+                  (t) => !["establishment", "point_of_interest"].includes(t)
+                )
+                .slice(0, 3)
+                .map((type) => (
+                  <span
+                    key={type}
+                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary"
+                  >
+                    {formatPlaceType(type)}
+                  </span>
+                ))}
             </div>
+          )}
 
-            {/* Rating badge */}
-            <div className="flex flex-shrink-0 items-center gap-1 rounded-lg bg-accent px-3 py-2">
-              <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-              <span className="text-lg font-bold text-foreground">
-                {place.rating?.toFixed(1) || "—"}
-              </span>
+          <DrawerTitle className="text-balance text-left text-2xl font-bold">
+            {place.displayName.text}
+          </DrawerTitle>
+
+          <DrawerDescription className="mt-1.5 flex items-center gap-1.5 text-left text-sm">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+            <span>{suburb}</span>
+          </DrawerDescription>
+
+          {/* Star rating */}
+          <div className="mt-3 flex items-center gap-2.5">
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-5 w-5 ${
+                    i < fullStars
+                      ? "fill-amber-400 text-amber-400"
+                      : i === fullStars && hasHalfStar
+                        ? "fill-amber-400/50 text-amber-400"
+                        : "fill-muted text-muted"
+                  }`}
+                />
+              ))}
             </div>
+            <span className="text-lg font-bold text-foreground">
+              {rating ? rating.toFixed(1) : "N/A"}
+            </span>
           </div>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-4">
-          {/* Address */}
-          <div className="mb-4 rounded-lg bg-muted/50 p-3">
-            <p className="text-sm text-foreground">{place.formattedAddress}</p>
+        <ScrollArea className="max-h-[40svh] flex-1 px-4">
+          {/* Address card */}
+          <div className="mb-4 rounded-xl bg-muted/40 p-4">
+            <p className="text-sm leading-relaxed text-foreground">
+              {place.formattedAddress}
+            </p>
           </div>
 
           {/* Opening hours */}
           {place.currentOpeningHours?.weekdayDescriptions && (
             <div className="mb-4">
-              <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Clock className="h-4 w-4" />
+              <h4 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Clock className="h-4 w-4 text-muted-foreground" />
                 Opening Hours
               </h4>
-              <div className="space-y-1 rounded-lg bg-muted/50 p-3">
+              <div className="space-y-1.5 rounded-xl bg-muted/40 p-4">
                 {place.currentOpeningHours.weekdayDescriptions.map(
                   (day, index) => (
                     <p
                       key={index}
-                      className="text-sm text-muted-foreground"
+                      className="text-sm leading-relaxed text-muted-foreground"
                     >
                       {day}
                     </p>
@@ -83,44 +117,25 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
               </div>
             </div>
           )}
-
-          {/* Place types/categories */}
-          {place.types.length > 0 && (
-            <div className="mb-4">
-              <h4 className="mb-2 text-sm font-semibold text-foreground">
-                Categories
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {place.types
-                  .filter(
-                    (t) => !["establishment", "point_of_interest"].includes(t)
-                  )
-                  .slice(0, 5)
-                  .map((type) => (
-                    <span
-                      key={type}
-                      className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                    >
-                      {formatPlaceType(type)}
-                    </span>
-                  ))}
-              </div>
-            </div>
-          )}
         </ScrollArea>
 
         {/* Action buttons */}
-        <div className="flex gap-3 border-t border-border p-4">
+        <div className="flex gap-3 p-4 pt-3">
           <Button
             variant="outline"
-            className="flex-1 gap-2"
+            size="lg"
+            className="flex-1 gap-2 rounded-xl"
             onClick={handleDirections}
           >
             <Navigation className="h-4 w-4" />
             Directions
           </Button>
           {place.websiteUri && (
-            <Button className="flex-1 gap-2" onClick={handleWebsite}>
+            <Button
+              size="lg"
+              className="flex-1 gap-2 rounded-xl"
+              onClick={handleWebsite}
+            >
               <ExternalLink className="h-4 w-4" />
               Website
             </Button>

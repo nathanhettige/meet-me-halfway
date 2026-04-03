@@ -60,13 +60,20 @@ function ResultsPage() {
         />
       </APIProvider>
 
-      <main className="flex-1 px-4 pb-6 pt-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">
-            {data.places.length} spots found
-          </h2>
+      <main className="flex-1 px-4 pb-8 pt-5">
+        {/* Section header */}
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">
+              Places to meet
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {data.places.length} spots found nearby
+            </p>
+          </div>
         </div>
 
+        {/* Place cards */}
         <div className="grid gap-3">
           {data.places.map((place) => (
             <PlaceCard
@@ -76,6 +83,9 @@ function ResultsPage() {
             />
           ))}
         </div>
+
+        {/* Bottom safe area padding */}
+        <div className="h-6" />
       </main>
 
       <PlaceDetailSheet
@@ -89,21 +99,44 @@ function ResultsPage() {
 function ResultsLoadingSkeleton() {
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <Skeleton className="h-9 w-9 rounded-full" />
-        <div className="flex-1">
-          <Skeleton className="mb-1 h-5 w-32" />
-          <Skeleton className="h-4 w-24" />
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div>
+            <Skeleton className="mb-1.5 h-5 w-28" />
+            <Skeleton className="h-3 w-36" />
+          </div>
         </div>
+        <Skeleton className="h-10 w-10 rounded-full" />
       </div>
 
-      <Skeleton className="h-32 w-full" />
+      {/* Map skeleton */}
+      <div className="mx-4 mt-2">
+        <Skeleton className="h-28 w-full rounded-2xl" />
+      </div>
 
-      <div className="flex-1 px-4 py-4">
-        <Skeleton className="mb-4 h-6 w-40" />
+      {/* Content skeleton */}
+      <div className="flex-1 px-4 pt-5">
+        <Skeleton className="mb-1.5 h-6 w-36" />
+        <Skeleton className="mb-4 h-4 w-28" />
+
         <div className="grid gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+            <div
+              key={i}
+              className="rounded-2xl bg-card p-4 ring-1 ring-border/50"
+            >
+              <Skeleton className="mb-2 h-4 w-16 rounded-full" />
+              <Skeleton className="mb-2 h-5 w-3/4" />
+              <Skeleton className="mb-2.5 h-4 w-1/2" />
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Skeleton key={s} className="h-4 w-4 rounded-sm" />
+                ))}
+                <Skeleton className="ml-1 h-4 w-8" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
