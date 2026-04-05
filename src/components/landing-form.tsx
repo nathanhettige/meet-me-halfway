@@ -12,6 +12,8 @@ type FormEntry = {
   label: string
 }
 
+const MAX_ENTRIES = 5
+
 let nextId = 0
 function createEntry(placeId = "", label = ""): FormEntry {
   return { id: `entry-${Date.now()}-${nextId++}`, placeId, label }
@@ -82,7 +84,7 @@ export function LandingForm({
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center px-8 md:top-[42vh] md:px-6"
+          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center overflow-y-auto px-8 md:top-[42vh] md:px-6"
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
@@ -167,6 +169,7 @@ export function LandingForm({
                   variant="ghost"
                   size="sm"
                   className="text-white/80 hover:bg-white/20 hover:text-white"
+                  disabled={entries.length >= MAX_ENTRIES}
                 >
                   <Plus className="h-4 w-4" />
                   add friend
