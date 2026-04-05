@@ -35,7 +35,7 @@ function ResultsPage() {
   const searchResult = useSearch(placeIds)
   const navigate = useNavigate()
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const [isMapExpanded, setIsMapExpanded] = useState(false)
+  const [isMapExpanded, setIsMapExpanded] = useState(true)
 
   useEffect(() => {
     if (!placeIdsParam) {
