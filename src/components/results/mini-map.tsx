@@ -51,7 +51,7 @@ export function MiniMap({
     <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl ring-1 ring-border/50">
       <div
         className={cn(
-          "w-full overflow-hidden transition-all duration-300 ease-out",
+          "w-full overflow-hidden transition-all duration-700 ease-out",
           isExpanded ? "h-64" : "h-28"
         )}
       >

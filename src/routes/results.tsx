@@ -35,7 +35,7 @@ function ResultsPage() {
   const searchResult = useSearch(placeIds)
   const navigate = useNavigate()
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const [isMapExpanded, setIsMapExpanded] = useState(true)
+  const [isMapExpanded, setIsMapExpanded] = useState(false)
 
   useEffect(() => {
     if (!placeIdsParam) {
@@ -46,7 +46,7 @@ function ResultsPage() {
   const isLoading = !searchResult.data
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
       <AnimatePresence mode="wait">
         {isLoading ? (
           <ResultsLoadingScreen key="loading" />
@@ -185,9 +185,15 @@ function ResultsContent({
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
 
+  // Expand the map shortly after results appear
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMapExpanded(true), 250)
+    return () => clearTimeout(timer)
+  }, [setIsMapExpanded])
+
   return (
     <motion.div
-      className="flex min-h-svh flex-col"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -203,21 +209,6 @@ function ResultsContent({
           placeCount={data.places.length}
           onBack={onBack}
         />
-      </motion.div>
-
-      {/* Section header — fades up */}
-      <motion.div
-        className="flex items-end justify-between px-4 pt-5"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-      >
-        <div>
-          <h2 className="text-xl font-bold text-foreground">places to meet</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {data.places.length} spots found nearby
-          </p>
-        </div>
       </motion.div>
 
       {/* Map — fades in */}
@@ -238,7 +229,24 @@ function ResultsContent({
         </APIProvider>
       </motion.div>
 
-      <main className="flex-1 px-4 pt-4 pb-8">
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-8">
+        {/* Section header — fades up */}
+        <motion.div
+          className="mb-4 flex items-end justify-between"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+        >
+          <div>
+            <h2 className="text-xl font-bold text-foreground">
+              places to meet
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {data.places.length} spots found nearby
+            </p>
+          </div>
+        </motion.div>
+
         {/* Place cards — staggered entrance */}
         <div className="grid gap-3">
           {data.places.map((place, index) => (
