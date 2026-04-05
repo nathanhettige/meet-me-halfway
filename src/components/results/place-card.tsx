@@ -32,7 +32,7 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
       <div className="min-w-0 flex-1">
         {/* Category pill */}
         {category && (
-          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary uppercase">
+          <span className="mb-2 inline-block rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase">
             {category}
           </span>
         )}
@@ -83,8 +83,8 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
         ) : photoQuery.isLoading ? (
           <Skeleton className="size-20 rounded-xl" />
         ) : (
-          <div className="flex size-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-primary/10">
-            <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-muted/50 transition-colors group-hover:bg-sky-blue/10">
+            <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-sky-blue" />
           </div>
         )}
       </div>

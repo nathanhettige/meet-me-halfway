@@ -30,6 +30,7 @@ export type PlacePhoto = {
 export type Place = {
   id: string
   formattedAddress: string
+  location: Coordinates
   rating: number
   googleMapsUri: string
   websiteUri: string

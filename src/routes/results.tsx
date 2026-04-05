@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { MapPin } from "lucide-react"
 import type { Place } from "@/server/maps/types"
 import { useSearch } from "@/hooks/use-maps"
+import { CloudBackground } from "@/components/clouds"
 import { ResultsHeader } from "@/components/results/results-header"
 import { MiniMap } from "@/components/results/mini-map"
 import { PlaceCard } from "@/components/results/place-card"
@@ -45,7 +46,7 @@ function ResultsPage() {
   const isLoading = !searchResult.data
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
       <AnimatePresence mode="wait">
         {isLoading ? (
           <ResultsLoadingScreen key="loading" />
@@ -80,12 +81,13 @@ function ResultsLoadingScreen() {
 
   return (
     <motion.div
-      className="flex flex-1 flex-col items-center justify-center gap-8 px-6"
+      className="sky-gradient relative flex flex-1 flex-col items-center justify-center gap-8 overflow-hidden px-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
+      <CloudBackground />
       {/* Logo */}
       <motion.div
         className="flex flex-col items-center gap-6"
@@ -93,7 +95,7 @@ function ResultsLoadingScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
       >
-        <span className="text-lg font-bold tracking-tight text-sky-blue">
+        <span className="text-lg font-bold tracking-tight text-white">
           meet me halfway
         </span>
       </motion.div>
@@ -107,12 +109,12 @@ function ResultsLoadingScreen() {
       >
         {/* Pulsing rings */}
         <motion.div
-          className="absolute inset-0 m-auto size-12 rounded-full bg-sky-blue/20"
+          className="absolute inset-0 m-auto size-12 rounded-full bg-white/20"
           animate={{ scale: [1, 2.5], opacity: [0.4, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
         />
         <motion.div
-          className="absolute inset-0 m-auto size-12 rounded-full bg-sky-blue/15"
+          className="absolute inset-0 m-auto size-12 rounded-full bg-white/15"
           animate={{ scale: [1, 2.5], opacity: [0.3, 0] }}
           transition={{
             duration: 2,
@@ -123,8 +125,8 @@ function ResultsLoadingScreen() {
         />
 
         {/* Pin icon */}
-        <div className="relative flex size-12 items-center justify-center rounded-full bg-sky-blue shadow-lg shadow-sky-blue/25">
-          <MapPin className="size-6 text-white" />
+        <div className="relative flex size-12 items-center justify-center rounded-full bg-white shadow-lg shadow-white/25">
+          <MapPin className="size-6 text-sky-blue" />
         </div>
       </motion.div>
 
@@ -133,7 +135,7 @@ function ResultsLoadingScreen() {
         <AnimatePresence mode="wait">
           <motion.p
             key={messageIndex}
-            className="text-center text-sm font-medium text-muted-foreground"
+            className="text-center text-sm font-medium text-white/80"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -153,8 +155,8 @@ function ResultsLoadingScreen() {
             animate={{
               backgroundColor:
                 i <= messageIndex
-                  ? "rgb(44, 173, 253)"
-                  : "rgb(44, 173, 253, 0.2)",
+                  ? "rgba(255, 255, 255, 1)"
+                  : "rgba(255, 255, 255, 0.3)",
               scale: i === messageIndex ? 1.3 : 1,
             }}
             transition={{ duration: 0.3 }}
@@ -183,9 +185,15 @@ function ResultsContent({
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
 
+  // Expand the map shortly after results appear
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMapExpanded(true), 250)
+    return () => clearTimeout(timer)
+  }, [setIsMapExpanded])
+
   return (
     <motion.div
-      className="flex min-h-svh flex-col"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -221,7 +229,7 @@ function ResultsContent({
         </APIProvider>
       </motion.div>
 
-      <main className="flex-1 px-4 pt-5 pb-8">
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-8">
         {/* Section header — fades up */}
         <motion.div
           className="mb-4 flex items-end justify-between"

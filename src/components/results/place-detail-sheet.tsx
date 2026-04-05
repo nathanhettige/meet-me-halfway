@@ -67,7 +67,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
                 .map((type) => (
                   <span
                     key={type}
-                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary uppercase"
+                    className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase"
                   >
                     {formatPlaceType(type)}
                   </span>

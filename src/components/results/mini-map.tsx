@@ -22,8 +22,10 @@ type MiniMapProps = {
 export function MiniMap({
   coordinates,
   midpoint,
+  places,
   isExpanded,
   onToggleExpand,
+  onPlaceSelect,
 }: MiniMapProps) {
   const map = useMap()
 
@@ -35,15 +37,21 @@ export function MiniMap({
       ;[...coordinates, midpoint].forEach((coord) => {
         bounds.extend({ lat: coord.latitude, lng: coord.longitude })
       })
+      places.forEach((place) => {
+        bounds.extend({
+          lat: place.location.latitude,
+          lng: place.location.longitude,
+        })
+      })
       map.fitBounds(bounds, { top: 20, bottom: 20, left: 20, right: 20 })
     }
-  }, [map, coordinates, midpoint])
+  }, [map, coordinates, midpoint, places])
 
   return (
     <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl ring-1 ring-border/50">
       <div
         className={cn(
-          "w-full overflow-hidden transition-all duration-300 ease-out",
+          "w-full overflow-hidden transition-all duration-700 ease-out",
           isExpanded ? "h-64" : "h-28"
         )}
       >
@@ -76,6 +84,22 @@ export function MiniMap({
               <MapPin className="h-4 w-4 text-white" />
             </div>
           </AdvancedMarker>
+
+          {/* Place markers */}
+          {places.map((place) => (
+            <AdvancedMarker
+              key={`place-${place.id}`}
+              position={{
+                lat: place.location.latitude,
+                lng: place.location.longitude,
+              }}
+              onClick={() => onPlaceSelect(place)}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-sky-blue/70 shadow-md transition-transform hover:scale-110">
+                <MapPin className="h-3.5 w-3.5 text-white" />
+              </div>
+            </AdvancedMarker>
+          ))}
         </Map>
       </div>
 

@@ -236,6 +236,7 @@ export class SimulatedWorld {
         id: placeId,
         displayName: { text: `simulated venue ${placeId}` },
         formattedAddress: `${placeCoords.latitude.toFixed(4)}, ${placeCoords.longitude.toFixed(4)}`,
+        location: placeCoords,
         rating: 4.0 + Math.random(),
         googleMapsUri: `https://maps.google.com/?q=${placeCoords.latitude},${placeCoords.longitude}`,
         websiteUri: "",
