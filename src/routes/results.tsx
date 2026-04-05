@@ -46,25 +46,22 @@ function ResultsPage() {
   const isLoading = !searchResult.data
 
   return (
-    <div className="sky-gradient relative flex min-h-svh flex-col overflow-hidden">
-      <CloudBackground />
-      <div className="relative z-10 flex min-h-svh flex-col">
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <ResultsLoadingScreen key="loading" />
-          ) : (
-            <ResultsContent
-              key="results"
-              data={searchResult.data}
-              selectedPlace={selectedPlace}
-              setSelectedPlace={setSelectedPlace}
-              isMapExpanded={isMapExpanded}
-              setIsMapExpanded={setIsMapExpanded}
-              onBack={() => navigate({ to: "/" })}
-            />
-          )}
-        </AnimatePresence>
-      </div>
+    <div className="flex min-h-svh flex-col bg-background">
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <ResultsLoadingScreen key="loading" />
+        ) : (
+          <ResultsContent
+            key="results"
+            data={searchResult.data}
+            selectedPlace={selectedPlace}
+            setSelectedPlace={setSelectedPlace}
+            isMapExpanded={isMapExpanded}
+            setIsMapExpanded={setIsMapExpanded}
+            onBack={() => navigate({ to: "/" })}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -84,12 +81,13 @@ function ResultsLoadingScreen() {
 
   return (
     <motion.div
-      className="flex flex-1 flex-col items-center justify-center gap-8 px-6"
+      className="sky-gradient relative flex flex-1 flex-col items-center justify-center gap-8 overflow-hidden px-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
+      <CloudBackground />
       {/* Logo */}
       <motion.div
         className="flex flex-col items-center gap-6"
@@ -234,8 +232,10 @@ function ResultsContent({
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
         >
           <div>
-            <h2 className="text-xl font-bold text-white">places to meet</h2>
-            <p className="mt-0.5 text-sm text-white/70">
+            <h2 className="text-xl font-bold text-foreground">
+              places to meet
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               {data.places.length} spots found nearby
             </p>
           </div>
