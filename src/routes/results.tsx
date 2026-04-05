@@ -205,6 +205,21 @@ function ResultsContent({
         />
       </motion.div>
 
+      {/* Section header — fades up */}
+      <motion.div
+        className="flex items-end justify-between px-4 pt-5"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+      >
+        <div>
+          <h2 className="text-xl font-bold text-foreground">places to meet</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {data.places.length} spots found nearby
+          </p>
+        </div>
+      </motion.div>
+
       {/* Map — fades in */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
@@ -223,24 +238,7 @@ function ResultsContent({
         </APIProvider>
       </motion.div>
 
-      <main className="flex-1 px-4 pt-5 pb-8">
-        {/* Section header — fades up */}
-        <motion.div
-          className="mb-4 flex items-end justify-between"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-        >
-          <div>
-            <h2 className="text-xl font-bold text-foreground">
-              places to meet
-            </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {data.places.length} spots found nearby
-            </p>
-          </div>
-        </motion.div>
-
+      <main className="flex-1 px-4 pt-4 pb-8">
         {/* Place cards — staggered entrance */}
         <div className="grid gap-3">
           {data.places.map((place, index) => (
