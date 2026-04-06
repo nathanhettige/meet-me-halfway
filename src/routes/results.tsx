@@ -185,12 +185,6 @@ function ResultsContent({
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
 
-  // Expand the map shortly after results appear
-  useEffect(() => {
-    const timer = setTimeout(() => setIsMapExpanded(true), 250)
-    return () => clearTimeout(timer)
-  }, [setIsMapExpanded])
-
   return (
     <motion.div
       className="flex min-h-0 flex-1 flex-col overflow-hidden"

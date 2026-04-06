@@ -52,7 +52,7 @@ export function MiniMap({
       <div
         className={cn(
           "w-full overflow-hidden transition-all duration-700 ease-out",
-          isExpanded ? "h-64" : "h-28"
+          isExpanded ? "h-64" : "h-36"
         )}
       >
         <Map
