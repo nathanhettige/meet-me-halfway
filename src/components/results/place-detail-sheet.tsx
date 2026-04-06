@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   ChevronDown,
@@ -12,14 +12,19 @@ import type { Place } from "@/server/maps/types"
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { usePlacePhoto } from "@/hooks/use-maps"
+import {
+  type CarouselApi,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel"
+import { usePlacePhotos } from "@/hooks/use-maps"
 
 type PlaceDetailSheetProps = {
   place: Place | null
@@ -27,20 +32,25 @@ type PlaceDetailSheetProps = {
 }
 
 export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
-  const firstPhoto = place?.photos?.[0]
-  const photoQuery = usePlacePhoto(firstPhoto)
+  const photosQuery = usePlacePhotos(place?.photos, 5)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  useEffect(() => {
+    if (!carouselApi) return
+    setCurrentSlide(carouselApi.selectedScrollSnap())
+    carouselApi.on("select", () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    })
+  }, [carouselApi])
 
   if (!place) return null
 
-  const locality = place.addressComponents?.find((c) =>
-    c.types?.includes("locality")
-  )?.longText
   const rating = place.rating || 0
   const fullStars = Math.floor(rating)
   const hasHalfStar = rating % 1 >= 0.5
 
   const handleDirections = () => {
-    // Open in Google Maps app or browser
     window.open(place.googleMapsUri, "_blank")
   }
 
@@ -50,34 +60,72 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
     }
   }
 
+  const photoCount = place.photos?.length ? Math.min(place.photos.length, 5) : 0
+  const loadedPhotos = photosQuery.urls.filter(Boolean) as Array<string>
+
   return (
     <Drawer open={!!place} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="max-h-[90svh]">
-        {/* Hero photo */}
-        {photoQuery.data ? (
-          <div className="mx-4 mt-2 overflow-hidden rounded-xl">
-            <img
-              src={photoQuery.data}
-              alt={place.displayName.text}
-              className="h-48 w-full object-cover"
-            />
-          </div>
-        ) : photoQuery.isLoading ? (
-          <Skeleton className="mx-4 mt-2 h-48 rounded-xl" />
-        ) : null}
+        {/* Photo carousel */}
+        {photoCount > 0 && (
+          <div className="mx-4 my-2">
+            {loadedPhotos.length > 0 ? (
+              <Carousel
+                opts={{ loop: loadedPhotos.length > 1 }}
+                setApi={setCarouselApi}
+                className="w-full"
+              >
+                <div className="relative overflow-hidden rounded-xl">
+                  <CarouselContent className="-ml-0">
+                    {loadedPhotos.map((url, i) => (
+                      <CarouselItem key={i} className="pl-0">
+                        <img
+                          src={url}
+                          alt={`${place.displayName.text} photo ${i + 1}`}
+                          className="h-48 w-full object-cover"
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {/* Photo count — top-right */}
+                  {loadedPhotos.length > 1 && (
+                    <div className="absolute top-3 right-3 rounded-full bg-black/40 px-2.5 py-0.5">
+                      <span className="text-[13px] leading-none font-normal text-white">
+                        {currentSlide + 1}/{loadedPhotos.length}
+                      </span>
+                    </div>
+                  )}
 
-        <DrawerHeader className="pt-4 pb-2">
+                  {/* Dots — bottom-centre */}
+                  {loadedPhotos.length > 1 && (
+                    <div className="absolute right-0 bottom-2.5 left-0 flex justify-center gap-1.5">
+                      {loadedPhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => carouselApi?.scrollTo(i)}
+                          className={`size-1.5 rounded-full transition-opacity duration-200 ${
+                            i === currentSlide ? "bg-white" : "bg-white/50"
+                          }`}
+                          aria-label={`Go to photo ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Carousel>
+            ) : photosQuery.isLoading ? (
+              <Skeleton className="h-48 rounded-xl" />
+            ) : null}
+          </div>
+        )}
+
+        <DrawerHeader className="pt-4 pb-4">
           <DrawerTitle className="text-left text-2xl font-bold text-balance">
             {place.displayName.text}
           </DrawerTitle>
 
-          <DrawerDescription className="mt-0 flex items-center gap-1.5 text-left text-sm">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>{locality}</span>
-          </DrawerDescription>
-
           {/* Star rating */}
-          <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <span className="text-sm text-foreground">
               {rating ? rating.toFixed(1) : "N/A"}
             </span>
@@ -125,7 +173,8 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
         <ScrollArea className="max-h-[40svh] flex-1 px-4">
           {/* Address card */}
           <div className="mb-4 rounded-xl bg-muted/40 p-4">
-            <p className="text-sm leading-relaxed text-foreground">
+            <p className="flex items-start gap-2 text-sm leading-snug text-foreground">
+              <MapPin className="mt-px h-4 w-4 shrink-0 text-muted-foreground" />
               {place.formattedAddress}
             </p>
           </div>
