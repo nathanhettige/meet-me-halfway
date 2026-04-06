@@ -1,4 +1,13 @@
-import { Clock, ExternalLink, MapPin, Navigation, Star } from "lucide-react"
+import { useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import {
+  ChevronDown,
+  Clock,
+  ExternalLink,
+  MapPin,
+  Navigation,
+  Star,
+} from "lucide-react"
 import type { Place } from "@/server/maps/types"
 import {
   Drawer,
@@ -23,7 +32,9 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
 
   if (!place) return null
 
-  const suburb = extractSuburb(place.formattedAddress)
+  const locality = place.addressComponents?.find((c) =>
+    c.types?.includes("locality")
+  )?.longText
   const rating = place.rating || 0
   const fullStars = Math.floor(rating)
   const hasHalfStar = rating % 1 >= 0.5
@@ -55,7 +66,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
           <Skeleton className="mx-4 mt-2 h-48 rounded-xl" />
         ) : null}
 
-        <DrawerHeader className="pt-4 pb-3">
+        <DrawerHeader className="pt-4 pb-2">
           {/* Category pills */}
           {place.types.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5">
@@ -79,18 +90,18 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
             {place.displayName.text}
           </DrawerTitle>
 
-          <DrawerDescription className="mt-1.5 flex items-center gap-1.5 text-left text-sm">
+          <DrawerDescription className="mt-0 flex items-center gap-1.5 text-left text-sm">
             <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>{suburb}</span>
+            <span>{locality}</span>
           </DrawerDescription>
 
           {/* Star rating */}
-          <div className="mt-3 flex items-center gap-2.5">
+          <div className="mt-3 flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-5 w-5 ${
+                  className={`h-3.5 w-3.5 ${
                     i < fullStars
                       ? "fill-amber-400 text-amber-400"
                       : i === fullStars && hasHalfStar
@@ -100,9 +111,14 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
                 />
               ))}
             </div>
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-sm font-bold text-foreground">
               {rating ? rating.toFixed(1) : "N/A"}
             </span>
+            {place.userRatingCount && (
+              <span className="text-sm text-muted-foreground">
+                ({place.userRatingCount.toLocaleString()})
+              </span>
+            )}
           </div>
         </DrawerHeader>
 
@@ -115,25 +131,8 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
           </div>
 
           {/* Opening hours */}
-          {place.currentOpeningHours?.weekdayDescriptions && (
-            <div className="mb-4">
-              <h4 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                Opening Hours
-              </h4>
-              <div className="space-y-1.5 rounded-xl bg-muted/40 p-4">
-                {place.currentOpeningHours.weekdayDescriptions.map(
-                  (day, index) => (
-                    <p
-                      key={index}
-                      className="text-sm leading-relaxed text-muted-foreground"
-                    >
-                      {day}
-                    </p>
-                  )
-                )}
-              </div>
-            </div>
+          {place.currentOpeningHours && (
+            <OpeningHours hours={place.currentOpeningHours} />
           )}
         </ScrollArea>
 
@@ -164,12 +163,76 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   )
 }
 
-function extractSuburb(address: string): string {
-  const parts = address.split(",").map((p) => p.trim())
-  if (parts.length >= 2) {
-    return parts[1]
-  }
-  return parts[0] || address
+function OpeningHours({
+  hours,
+}: {
+  hours: NonNullable<Place["currentOpeningHours"]>
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const { openNow, weekdayDescriptions } = hours
+
+  return (
+    <div className="mb-4 rounded-xl bg-muted/40">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          {openNow === true ? (
+            <span className="text-sm font-semibold text-emerald-500">
+              open now
+            </span>
+          ) : (
+            <span className="text-sm font-semibold text-foreground">
+              opening hours
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {openNow === false && (
+            <span className="text-sm font-semibold text-red-400">
+              closed now
+            </span>
+          )}
+          {weekdayDescriptions && weekdayDescriptions.length > 0 && (
+            <motion.div
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+          )}
+        </div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && weekdayDescriptions && weekdayDescriptions.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.15, ease: "easeInOut" },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-1.5 px-4 pt-2.5 pb-3">
+              {weekdayDescriptions.map((day, index) => (
+                <p
+                  key={index}
+                  className="text-sm leading-relaxed text-muted-foreground"
+                >
+                  {day}
+                </p>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 function formatPlaceType(type?: string): string {

@@ -45,11 +45,13 @@ export type Place = {
     text: string
   }
   currentOpeningHours?: {
+    openNow?: boolean
     weekdayDescriptions: Array<string>
   }
   types: Array<string>
   photos?: Array<PlacePhoto>
   priceLevel?: string
+  userRatingCount?: number
 }
 
 export type SnapResult = {

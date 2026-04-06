@@ -76,15 +76,6 @@ export function MiniMap({
             </AdvancedMarker>
           ))}
 
-          {/* Midpoint marker */}
-          <AdvancedMarker
-            position={{ lat: midpoint.latitude, lng: midpoint.longitude }}
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-sky-blue shadow-lg">
-              <MapPin className="h-4 w-4 text-white" />
-            </div>
-          </AdvancedMarker>
-
           {/* Place markers */}
           {places.map((place) => (
             <AdvancedMarker
