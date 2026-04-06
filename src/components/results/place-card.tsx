@@ -1,4 +1,4 @@
-import { MapPin, Star } from "lucide-react"
+import { Star } from "lucide-react"
 import type { Place } from "@/server/maps/types"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePlacePhoto } from "@/hooks/use-maps"
@@ -9,7 +9,9 @@ type PlaceCardProps = {
 }
 
 export function PlaceCard({ place, onSelect }: PlaceCardProps) {
-  const suburb = extractSuburb(place.formattedAddress)
+  const locality = place.addressComponents?.find((c) =>
+    c.types?.includes("locality")
+  )?.longText
   const category = formatPlaceType(place.types[0])
   const rating = place.rating || 0
 
@@ -52,24 +54,34 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
 
       {/* Text below the card */}
       <div className="mt-2.5 px-1">
-        <h3 className="text-[15px] leading-snug font-bold text-foreground">
+        <h3 className="text-[15px] leading-tight font-bold text-foreground">
           {place.displayName.text}
         </h3>
-        <div className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-          <span className="truncate">{suburb}</span>
+        <div className="flex items-center gap-1 text-xs tracking-tight text-muted-foreground">
+          <span className="truncate">{locality}</span>
+          {place.priceLevel && (
+            <>
+              <span>·</span>
+              <span className="flex-shrink-0">
+                {formatPriceLevel(place.priceLevel)}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-function extractSuburb(address: string): string {
-  const parts = address.split(",").map((p) => p.trim())
-  if (parts.length >= 2) {
-    return parts[1]
+function formatPriceLevel(priceLevel: string): string {
+  const map: Record<string, string> = {
+    PRICE_LEVEL_FREE: "free",
+    PRICE_LEVEL_INEXPENSIVE: "$",
+    PRICE_LEVEL_MODERATE: "$$",
+    PRICE_LEVEL_EXPENSIVE: "$$$",
+    PRICE_LEVEL_VERY_EXPENSIVE: "$$$$",
   }
-  return parts[0] || address
+  return map[priceLevel] ?? ""
 }
 
 function formatPlaceType(type?: string): string {

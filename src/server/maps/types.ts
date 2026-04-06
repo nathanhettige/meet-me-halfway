@@ -27,9 +27,16 @@ export type PlacePhoto = {
   heightPx: number
 }
 
+export type PlaceAddressComponent = {
+  longText: string
+  shortText: string
+  types: Array<string>
+}
+
 export type Place = {
   id: string
   formattedAddress: string
+  addressComponents?: Array<PlaceAddressComponent>
   location: Coordinates
   rating: number
   googleMapsUri: string
@@ -42,6 +49,7 @@ export type Place = {
   }
   types: Array<string>
   photos?: Array<PlacePhoto>
+  priceLevel?: string
 }
 
 export type SnapResult = {
