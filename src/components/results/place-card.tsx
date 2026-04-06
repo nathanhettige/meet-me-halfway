@@ -57,7 +57,7 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
         <h3 className="text-[15px] leading-tight font-bold text-foreground">
           {place.displayName.text}
         </h3>
-        <div className="flex items-center gap-1 text-xs tracking-tight text-muted-foreground">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span className="truncate">{locality}</span>
           {place.priceLevel && (
             <>

@@ -242,7 +242,7 @@ function ResultsContent({
         </motion.div>
 
         {/* Place cards — staggered entrance */}
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {data.places.map((place, index) => (
             <motion.div
               key={place.id}
