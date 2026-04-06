@@ -67,9 +67,44 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
         ) : null}
 
         <DrawerHeader className="pt-4 pb-2">
+          <DrawerTitle className="text-left text-2xl font-bold text-balance">
+            {place.displayName.text}
+          </DrawerTitle>
+
+          <DrawerDescription className="mt-0 flex items-center gap-1.5 text-left text-sm">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+            <span>{locality}</span>
+          </DrawerDescription>
+
+          {/* Star rating */}
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <span className="text-sm text-foreground">
+              {rating ? rating.toFixed(1) : "N/A"}
+            </span>
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3.5 w-3.5 ${
+                    i < fullStars
+                      ? "fill-amber-400 text-amber-400"
+                      : i === fullStars && hasHalfStar
+                        ? "fill-amber-400/50 text-amber-400"
+                        : "fill-muted text-muted"
+                  }`}
+                />
+              ))}
+            </div>
+            {place.userRatingCount && (
+              <span className="text-sm text-muted-foreground">
+                ({place.userRatingCount.toLocaleString()})
+              </span>
+            )}
+          </div>
+
           {/* Category pills */}
           {place.types.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {place.types
                 .filter(
                   (t) => !["establishment", "point_of_interest"].includes(t)
@@ -85,41 +120,6 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
                 ))}
             </div>
           )}
-
-          <DrawerTitle className="text-left text-2xl font-bold text-balance">
-            {place.displayName.text}
-          </DrawerTitle>
-
-          <DrawerDescription className="mt-0 flex items-center gap-1.5 text-left text-sm">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>{locality}</span>
-          </DrawerDescription>
-
-          {/* Star rating */}
-          <div className="mt-3 flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3.5 w-3.5 ${
-                    i < fullStars
-                      ? "fill-amber-400 text-amber-400"
-                      : i === fullStars && hasHalfStar
-                        ? "fill-amber-400/50 text-amber-400"
-                        : "fill-muted text-muted"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-sm font-bold text-foreground">
-              {rating ? rating.toFixed(1) : "N/A"}
-            </span>
-            {place.userRatingCount && (
-              <span className="text-sm text-muted-foreground">
-                ({place.userRatingCount.toLocaleString()})
-              </span>
-            )}
-          </div>
         </DrawerHeader>
 
         <ScrollArea className="max-h-[40svh] flex-1 px-4">
