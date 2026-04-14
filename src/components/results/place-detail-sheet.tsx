@@ -219,6 +219,12 @@ function OpeningHours({
 }) {
   const [expanded, setExpanded] = useState(false)
   const { openNow, weekdayDescriptions } = hours
+  const status =
+    openNow === true
+      ? { label: "open now", className: "text-emerald-500" }
+      : openNow === false
+        ? { label: "closed now", className: "text-red-400" }
+        : { label: "opening hours", className: "text-foreground" }
 
   return (
     <div className="mb-4 rounded-xl bg-muted/40">
@@ -228,31 +234,18 @@ function OpeningHours({
       >
         <div className="flex items-center gap-2.5">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          {openNow === true ? (
-            <span className="text-sm font-semibold text-emerald-500">
-              open now
-            </span>
-          ) : (
-            <span className="text-sm font-semibold text-foreground">
-              opening hours
-            </span>
-          )}
+          <span className={`text-sm font-semibold ${status.className}`}>
+            {status.label}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          {openNow === false && (
-            <span className="text-sm font-semibold text-red-400">
-              closed now
-            </span>
-          )}
-          {weekdayDescriptions && weekdayDescriptions.length > 0 && (
-            <motion.div
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            >
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </motion.div>
-          )}
-        </div>
+        {weekdayDescriptions && weekdayDescriptions.length > 0 && (
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          >
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </motion.div>
+        )}
       </button>
 
       <AnimatePresence initial={false}>
