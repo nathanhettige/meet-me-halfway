@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Autocomplete } from "@base-ui/react/autocomplete"
 import { MapPin, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,7 @@ type AutoCompleteProps = {
   defaultValue?: string
   setPlaceId?: (placeId: string, label: string) => void
   onDelete?: () => void
+  onBlur?: () => void
 }
 
 export function AutoComplete({
@@ -25,8 +26,13 @@ export function AutoComplete({
   defaultValue,
   setPlaceId,
   onDelete,
+  onBlur,
 }: AutoCompleteProps) {
   const [searchValue, setSearchValue] = useState(defaultValue ?? "")
+
+  // Tracks the label of the last confirmed selection so we can detect
+  // when the user edits the text after picking an option (invalidating it).
+  const selectedLabelRef = useRef(defaultValue ?? "")
 
   const { data, isDebouncing, isLoading } = useAutocomplete(searchValue)
 
@@ -39,6 +45,15 @@ export function AutoComplete({
     (searchValue !== "" && !hasResults) ||
     hasResults
 
+  const handleValueChange = (next: string) => {
+    setSearchValue(next)
+    // If the user edits away from the confirmed selection, clear the placeId
+    if (next !== selectedLabelRef.current) {
+      selectedLabelRef.current = ""
+      setPlaceId?.("", "")
+    }
+  }
+
   return (
     <div className="flex w-full items-center gap-2">
       <div className="relative w-full">
@@ -48,11 +63,12 @@ export function AutoComplete({
           value={searchValue}
           itemToStringValue={(item: Option) => item.label}
           filter={null}
-          onValueChange={(next) => setSearchValue(next)}
+          onValueChange={handleValueChange}
         >
           <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-slate-700" />
           <Autocomplete.Input
             placeholder={placeholder}
+            onBlur={onBlur}
             className={cn(
               "h-12 w-full rounded-xl border border-input bg-background px-10 py-2 text-center text-base",
               "ring-offset-background placeholder:text-muted-foreground",
@@ -92,7 +108,10 @@ export function AutoComplete({
                         "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-slate-900 outline-none select-none",
                         "data-highlighted:bg-[rgba(44,173,253,0.15)]"
                       )}
-                      onClick={() => setPlaceId?.(option.value, option.label)}
+                      onClick={() => {
+                        selectedLabelRef.current = option.label
+                        setPlaceId?.(option.value, option.label)
+                      }}
                     >
                       <span className="truncate">{option.label}</span>
                     </Autocomplete.Item>
