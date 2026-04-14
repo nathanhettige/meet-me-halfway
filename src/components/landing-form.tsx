@@ -168,7 +168,7 @@ export function LandingForm({
                   onClick={() => setEntries((prev) => [...prev, createEntry()])}
                   variant="ghost"
                   size="sm"
-                  className="text-white/80 hover:bg-white/20 hover:text-white"
+                  className="font-semibold text-white hover:bg-white/20 hover:text-white"
                   disabled={entries.length >= MAX_ENTRIES}
                 >
                   <Plus className="h-4 w-4" />
