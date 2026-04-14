@@ -98,8 +98,8 @@ export function LandingForm({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: delay + 0.3 }}
             >
-              <Alert className="border-0 bg-white/15 backdrop-blur-xl">
-                <AlertDescription className="text-center text-base font-bold text-slate-800/80">
+              <Alert className="border-0 bg-white/30 backdrop-blur-xl">
+                <AlertDescription className="text-center text-base font-bold text-slate-900">
                   find the best places to catch up with a perfectly balanced
                   drive time for everyone.
                 </AlertDescription>
@@ -107,7 +107,7 @@ export function LandingForm({
             </motion.div>
 
             {/* Card with inputs + actions */}
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-4 shadow-lg backdrop-blur-xl">
+            <div className="rounded-2xl border border-white/30 bg-white/20 p-4 shadow-lg backdrop-blur-xl">
               {/* Address inputs */}
               <div className="space-y-3">
                 {entries.map((entry, index) => (

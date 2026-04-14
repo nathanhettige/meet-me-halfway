@@ -50,7 +50,7 @@ export function AutoComplete({
           filter={null}
           onValueChange={(next) => setSearchValue(next)}
         >
-          <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-slate-800/80" />
+          <MapPin className="pointer-events-none absolute top-1/2 left-3.5 z-10 h-4 w-4 -translate-y-1/2 text-slate-700" />
           <Autocomplete.Input
             placeholder={placeholder}
             className={cn(
@@ -89,7 +89,7 @@ export function AutoComplete({
                       key={option.value}
                       value={option}
                       className={cn(
-                        "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-[rgba(30,41,59,0.8)] outline-none select-none",
+                        "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-slate-900 outline-none select-none",
                         "data-highlighted:bg-[rgba(44,173,253,0.15)]"
                       )}
                       onClick={() => setPlaceId?.(option.value, option.label)}
