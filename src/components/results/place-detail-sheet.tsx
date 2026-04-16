@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   ChevronDown,
   Clock,
-  ExternalLink,
+  Globe,
   MapPin,
   Navigation,
   Star,
@@ -16,12 +16,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  type CarouselApi,
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
 import { usePlacePhotos } from "@/hooks/use-maps"
 
@@ -35,17 +29,7 @@ type SnapPoint = (typeof SNAP_POINTS)[number]
 
 export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   const photosQuery = usePlacePhotos(place?.photos, 5)
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
-  const [currentSlide, setCurrentSlide] = useState(0)
   const [snap, setSnap] = useState<SnapPoint | null>(SNAP_POINTS[0])
-
-  useEffect(() => {
-    if (!carouselApi) return
-    setCurrentSlide(carouselApi.selectedScrollSnap())
-    carouselApi.on("select", () => {
-      setCurrentSlide(carouselApi.selectedScrollSnap())
-    })
-  }, [carouselApi])
 
   if (!place) return null
 
@@ -82,112 +66,63 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
       setActiveSnapPoint={(s) => setSnap(s as SnapPoint | null)}
     >
       <DrawerContent>
-        {/* Photo carousel */}
-        {photoCount > 0 && (
-          <div className="mx-4 my-2">
-            {loadedPhotos.length > 0 ? (
-              <Carousel
-                opts={{ loop: loadedPhotos.length > 1 }}
-                setApi={setCarouselApi}
-                className="w-full"
-              >
-                <div className="relative overflow-hidden rounded-xl">
-                  <CarouselContent className="-ml-0">
-                    {loadedPhotos.map((url, i) => (
-                      <CarouselItem key={i} className="pl-0">
-                        <img
-                          src={url}
-                          alt={`${place.displayName.text} photo ${i + 1}`}
-                          className="h-48 w-full object-cover"
-                        />
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  {/* Photo count — top-right */}
-                  {loadedPhotos.length > 1 && (
-                    <div className="absolute top-3 right-3 rounded-full bg-black/40 px-2.5 py-0.5">
-                      <span className="text-[13px] leading-none font-normal text-white">
-                        {currentSlide + 1}/{loadedPhotos.length}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Dots — bottom-centre */}
-                  {loadedPhotos.length > 1 && (
-                    <div className="absolute right-0 bottom-2.5 left-0 flex justify-center gap-1.5">
-                      {loadedPhotos.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => carouselApi?.scrollTo(i)}
-                          className={`size-1.5 rounded-full transition-opacity duration-200 ${
-                            i === currentSlide ? "bg-white" : "bg-white/50"
-                          }`}
-                          aria-label={`Go to photo ${i + 1}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Carousel>
-            ) : photosQuery.isLoading ? (
-              <Skeleton className="h-48 rounded-xl" />
-            ) : null}
-          </div>
-        )}
-
         <DrawerHeader className="pt-4 pb-3">
           <DrawerTitle className="text-left text-2xl font-bold text-balance">
             {place.displayName.text}
           </DrawerTitle>
 
-          {/* Star rating */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm text-foreground">
-              {rating ? rating.toFixed(1) : "N/A"}
-            </span>
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3.5 w-3.5 ${
-                    i < fullStars
-                      ? "fill-amber-400 text-amber-400"
-                      : i === fullStars && hasHalfStar
-                        ? "fill-amber-400/50 text-amber-400"
-                        : "fill-muted text-muted"
-                  }`}
-                />
-              ))}
-            </div>
-            {place.userRatingCount && (
-              <span className="text-sm text-muted-foreground">
-                ({place.userRatingCount.toLocaleString()})
-              </span>
-            )}
-          </div>
-
-          {/* Category pills + action buttons */}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          {/* Badge, rating, price level */}
+          <div className="flex items-center gap-1">
             {place.types
               .filter(
                 (t) => !["establishment", "point_of_interest"].includes(t)
               )
-              .slice(0, 3)
+              .slice(0, 1)
               .map((type) => (
                 <span
                   key={type}
-                  className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase"
+                  className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[12px] font-semibold tracking-wide text-sky-blue uppercase"
                 >
                   {formatPlaceType(type)}
                 </span>
               ))}
+            <span className="text-[12px] text-muted-foreground">·</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[12px] font-semibold text-foreground">
+                {rating ? rating.toFixed(1) : "N/A"}
+              </span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-3 w-3 ${
+                      i < fullStars
+                        ? "fill-amber-400 text-amber-400"
+                        : i === fullStars && hasHalfStar
+                          ? "fill-amber-400/50 text-amber-400"
+                          : "fill-muted text-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+              {place.userRatingCount && (
+                <span className="text-[12px] text-muted-foreground">
+                  ({place.userRatingCount.toLocaleString()})
+                </span>
+              )}
+            </div>
+            {place.priceLevel && (
+              <>
+                <span className="text-[12px] text-muted-foreground">·</span>
+                <span className="text-[12px] font-semibold text-muted-foreground">
+                  {formatPriceLevel(place.priceLevel)}
+                </span>
+              </>
+            )}
+          </div>
 
-            {/* Divider */}
-            {place.types.filter(
-              (t) => !["establishment", "point_of_interest"].includes(t)
-            ).length > 0 && <div className="h-4 w-px bg-border" />}
-
-            {/* Action buttons */}
+          {/* Action buttons */}
+          <div className="mt-2 flex items-center gap-2">
             <button
               onClick={handleDirections}
               className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
@@ -200,12 +135,32 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
                 onClick={handleWebsite}
                 className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
               >
-                <ExternalLink className="h-3 w-3" />
+                <Globe className="h-3 w-3" />
                 website
               </button>
             )}
           </div>
         </DrawerHeader>
+
+        {/* Horizontal scrollable photo mosaic */}
+        {photoCount > 0 && (
+          <div className="px-4 pb-2">
+            {loadedPhotos.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto">
+                {loadedPhotos.map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`${place.displayName.text} photo ${i + 1}`}
+                    className="h-36 w-52 shrink-0 rounded-xl object-cover"
+                  />
+                ))}
+              </div>
+            ) : photosQuery.isLoading ? (
+              <Skeleton className="h-36 rounded-xl" />
+            ) : null}
+          </div>
+        )}
 
         <div
           className={cn(
@@ -317,6 +272,17 @@ function OpeningHours({
       </AnimatePresence>
     </div>
   )
+}
+
+function formatPriceLevel(priceLevel: string): string {
+  const map: Record<string, string> = {
+    PRICE_LEVEL_FREE: "free",
+    PRICE_LEVEL_INEXPENSIVE: "$",
+    PRICE_LEVEL_MODERATE: "$$",
+    PRICE_LEVEL_EXPENSIVE: "$$$",
+    PRICE_LEVEL_VERY_EXPENSIVE: "$$$$",
+  }
+  return map[priceLevel] ?? priceLevel
 }
 
 function formatPlaceType(type?: string): string {
