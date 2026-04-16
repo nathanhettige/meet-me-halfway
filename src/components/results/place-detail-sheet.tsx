@@ -15,15 +15,14 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 import { usePlacePhotos } from "@/hooks/use-maps"
 
 type PlaceDetailSheetProps = {
@@ -31,10 +30,14 @@ type PlaceDetailSheetProps = {
   onClose: () => void
 }
 
+const SNAP_POINTS = [0.67, 0.95] as const
+type SnapPoint = (typeof SNAP_POINTS)[number]
+
 export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   const photosQuery = usePlacePhotos(place?.photos, 5)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [snap, setSnap] = useState<SnapPoint | null>(SNAP_POINTS[0])
 
   useEffect(() => {
     if (!carouselApi) return
@@ -63,9 +66,22 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
   const photoCount = place.photos?.length ? Math.min(place.photos.length, 5) : 0
   const loadedPhotos = photosQuery.urls.filter(Boolean) as Array<string>
 
+  const isExpanded = snap === SNAP_POINTS[1]
+
   return (
-    <Drawer open={!!place} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[90svh]">
+    <Drawer
+      open={!!place}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose()
+          setSnap(SNAP_POINTS[0])
+        }
+      }}
+      snapPoints={[...SNAP_POINTS]}
+      activeSnapPoint={snap}
+      setActiveSnapPoint={(s) => setSnap(s as SnapPoint | null)}
+    >
+      <DrawerContent>
         {/* Photo carousel */}
         {photoCount > 0 && (
           <div className="mx-4 my-2">
@@ -119,7 +135,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
           </div>
         )}
 
-        <DrawerHeader className="pt-4 pb-4">
+        <DrawerHeader className="pt-4 pb-3">
           <DrawerTitle className="text-left text-2xl font-bold text-balance">
             {place.displayName.text}
           </DrawerTitle>
@@ -150,27 +166,53 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
             )}
           </div>
 
-          {/* Category pills */}
-          {place.types.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {place.types
-                .filter(
-                  (t) => !["establishment", "point_of_interest"].includes(t)
-                )
-                .slice(0, 3)
-                .map((type) => (
-                  <span
-                    key={type}
-                    className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase"
-                  >
-                    {formatPlaceType(type)}
-                  </span>
-                ))}
-            </div>
-          )}
+          {/* Category pills + action buttons */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {place.types
+              .filter(
+                (t) => !["establishment", "point_of_interest"].includes(t)
+              )
+              .slice(0, 3)
+              .map((type) => (
+                <span
+                  key={type}
+                  className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-blue uppercase"
+                >
+                  {formatPlaceType(type)}
+                </span>
+              ))}
+
+            {/* Divider */}
+            {place.types.filter(
+              (t) => !["establishment", "point_of_interest"].includes(t)
+            ).length > 0 && <div className="h-4 w-px bg-border" />}
+
+            {/* Action buttons */}
+            <button
+              onClick={handleDirections}
+              className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              <Navigation className="h-3 w-3" />
+              directions
+            </button>
+            {place.websiteUri && (
+              <button
+                onClick={handleWebsite}
+                className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
+              >
+                <ExternalLink className="h-3 w-3" />
+                website
+              </button>
+            )}
+          </div>
         </DrawerHeader>
 
-        <ScrollArea className="max-h-[40svh] flex-1 px-4">
+        <div
+          className={cn(
+            "min-h-0 flex-1 px-4",
+            isExpanded ? "overflow-y-auto" : "overflow-hidden"
+          )}
+        >
           {/* Address card */}
           <div className="mb-4 rounded-xl bg-muted/40 p-4">
             <p className="flex items-start gap-2 text-sm leading-snug text-foreground">
@@ -181,30 +223,11 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
 
           {/* Opening hours */}
           {place.currentOpeningHours && (
-            <OpeningHours hours={place.currentOpeningHours} />
-          )}
-        </ScrollArea>
-
-        {/* Action buttons */}
-        <div className="flex gap-3 p-4 pt-3">
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex-1 gap-2 rounded-xl"
-            onClick={handleDirections}
-          >
-            <Navigation className="h-4 w-4" />
-            Directions
-          </Button>
-          {place.websiteUri && (
-            <Button
-              size="lg"
-              className="flex-1 gap-2 rounded-xl"
-              onClick={handleWebsite}
-            >
-              <ExternalLink className="h-4 w-4" />
-              Website
-            </Button>
+            <OpeningHours
+              hours={place.currentOpeningHours}
+              isExpanded={isExpanded}
+              onExpand={() => setSnap(SNAP_POINTS[1])}
+            />
           )}
         </div>
       </DrawerContent>
@@ -214,38 +237,57 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
 
 function OpeningHours({
   hours,
+  isExpanded,
+  onExpand,
 }: {
   hours: NonNullable<Place["currentOpeningHours"]>
+  isExpanded: boolean
+  onExpand: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const { openNow, weekdayDescriptions } = hours
-  const status =
+  const statusLabel =
     openNow === true
       ? { label: "open now", className: "text-emerald-500" }
       : openNow === false
         ? { label: "closed now", className: "text-red-400" }
-        : { label: "opening hours", className: "text-foreground" }
+        : null
 
   return (
     <div className="mb-4 rounded-xl bg-muted/40">
       <button
-        onClick={() => setExpanded((v) => !v)}
+        data-vaul-no-drag
+        onClick={() => {
+          if (!isExpanded) {
+            onExpand()
+            setExpanded(true)
+            return
+          }
+          setExpanded((v) => !v)
+        }}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2.5">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className={`text-sm font-semibold ${status.className}`}>
-            {status.label}
+          <span className="text-sm font-semibold text-foreground">
+            opening hours
           </span>
         </div>
-        {weekdayDescriptions && weekdayDescriptions.length > 0 && (
-          <motion.div
-            animate={{ rotate: expanded ? 180 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </motion.div>
-        )}
+        <div className="flex items-center gap-2">
+          {statusLabel && (
+            <span className={`text-sm font-semibold ${statusLabel.className}`}>
+              {statusLabel.label}
+            </span>
+          )}
+          {weekdayDescriptions && weekdayDescriptions.length > 0 && (
+            <motion.div
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+          )}
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
