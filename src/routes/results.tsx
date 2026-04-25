@@ -184,6 +184,7 @@ function ResultsContent({
   onBack: () => void
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
+  const filteredPlaces = data.places.filter((place) => place.photos?.length)
 
   return (
     <motion.div
@@ -200,7 +201,7 @@ function ResultsContent({
       >
         <ResultsHeader
           cityName={cityName}
-          placeCount={data.places.length}
+          placeCount={filteredPlaces.length}
           onBack={onBack}
         />
       </motion.div>
@@ -215,7 +216,7 @@ function ResultsContent({
           <MiniMap
             coordinates={data.coordinates}
             midpoint={data.midpoint}
-            places={data.places}
+            places={filteredPlaces}
             isExpanded={isMapExpanded}
             onToggleExpand={() => setIsMapExpanded(!isMapExpanded)}
             onPlaceSelect={setSelectedPlace}
@@ -236,14 +237,14 @@ function ResultsContent({
               places to meet
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              {data.places.length} spots found nearby
+              {filteredPlaces.length} spots found nearby
             </p>
           </div>
         </motion.div>
 
         {/* Place cards — staggered entrance */}
         <div className="grid gap-6">
-          {data.places.filter((place) => place.photos?.length).map((place, index) => (
+          {filteredPlaces.map((place, index) => (
             <motion.div
               key={place.id}
               initial={{ opacity: 0, y: 20 }}
