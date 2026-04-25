@@ -243,7 +243,7 @@ function ResultsContent({
 
         {/* Place cards — staggered entrance */}
         <div className="grid gap-6">
-          {data.places.map((place, index) => (
+          {data.places.filter((place) => place.photos?.length).map((place, index) => (
             <motion.div
               key={place.id}
               initial={{ opacity: 0, y: 20 }}
