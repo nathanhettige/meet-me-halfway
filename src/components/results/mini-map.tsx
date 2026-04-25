@@ -62,6 +62,8 @@ export function MiniMap({
           defaultCenter={{ lat: midpoint.latitude, lng: midpoint.longitude }}
           gestureHandling="cooperative"
           disableDefaultUI={true}
+          keyboardShortcuts={false}
+          clickableIcons={false}
           className="h-full w-full"
         >
           {/* Origin markers */}
