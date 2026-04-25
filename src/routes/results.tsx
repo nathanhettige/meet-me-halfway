@@ -188,13 +188,14 @@ function ResultsContent({
 
   return (
     <motion.div
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {/* Header — slides down */}
       <motion.div
+        className="sticky top-0 z-20"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
@@ -224,7 +225,7 @@ function ResultsContent({
         </APIProvider>
       </motion.div>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-8">
+      <main className="px-4 pt-5 pb-8">
         {/* Section header — fades up */}
         <motion.div
           className="mb-4 flex items-end justify-between"
