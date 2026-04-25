@@ -48,11 +48,11 @@ export function MiniMap({
   }, [map, coordinates, midpoint, places])
 
   return (
-    <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl ring-1 ring-border/50">
+    <div className="relative overflow-hidden">
       <div
         className={cn(
           "w-full overflow-hidden transition-all duration-700 ease-out",
-          isExpanded ? "h-64" : "h-36"
+          isExpanded ? "h-80" : "h-48"
         )}
       >
         <Map
@@ -103,7 +103,7 @@ export function MiniMap({
       {/* Expand/collapse toggle */}
       <button
         onClick={onToggleExpand}
-        className="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-1 bg-gradient-to-t from-background/95 via-background/80 to-transparent py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground"
       >
         {isExpanded ? (
           <>
