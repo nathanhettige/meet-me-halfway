@@ -95,7 +95,7 @@ function ResultsLoadingScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
       >
-        <span className="text-lg font-bold tracking-tight text-white">
+        <span className="text-3xl font-bold tracking-tight text-white">
           meet me halfway
         </span>
       </motion.div>
@@ -131,11 +131,11 @@ function ResultsLoadingScreen() {
       </motion.div>
 
       {/* Rotating status messages */}
-      <div className="h-6 overflow-hidden">
+      <div className="h-7 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.p
             key={messageIndex}
-            className="text-center text-sm font-medium text-white/80"
+            className="text-center text-base font-medium text-white/80"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
