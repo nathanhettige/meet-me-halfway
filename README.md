@@ -1,21 +1,33 @@
-# TanStack Start + shadcn/ui
+# meet me halfway
 
-This is a template for a new TanStack Start project with React, TypeScript, and shadcn/ui.
+find the fairest meeting spot between friends — optimized by real driving time, not straight-line distance. free to use.
 
-## Adding components
+![homepage](public/screenshot.png)
 
-To add components to your app, run the following command:
+## how it works
+
+1. enter two or more addresses
+2. we calculate the true midpoint based on actual drive times
+3. browse nearby cafés, restaurants, and parks to meet at
+
+## tech stack
+
+tanstack start · react 19 · tailwind css v4 · google maps · react three fiber
+
+## getting started
 
 ```bash
-npx shadcn@latest add button
+pnpm install
+cp .env.template .env   # add your google maps api keys
+pnpm dev                 # http://localhost:3002
 ```
 
-This will place the ui components in the `components` directory.
+## commands
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
-```
+| task | command |
+|------|---------|
+| dev server | `pnpm dev` |
+| build | `pnpm build` |
+| typecheck | `pnpm typecheck` |
+| lint | `pnpm lint` |
+| test | `pnpm test` |
