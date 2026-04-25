@@ -52,6 +52,7 @@ export type Place = {
   photos?: Array<PlacePhoto>
   priceLevel?: string
   userRatingCount?: number
+  businessStatus?: string
 }
 
 export type SnapResult = {

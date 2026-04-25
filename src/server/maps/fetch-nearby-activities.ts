@@ -12,7 +12,7 @@ export async function fetchNearbyActivities(
         "Content-Type": "application/json",
         "X-Goog-Api-Key": process.env.MAPS_API_KEY!,
         "X-Goog-FieldMask":
-          "places.id,places.displayName.text,places.formattedAddress,places.addressComponents,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.openNow,places.currentOpeningHours.weekdayDescriptions,places.types,places.photos,places.priceLevel",
+          "places.id,places.displayName.text,places.formattedAddress,places.addressComponents,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.openNow,places.currentOpeningHours.weekdayDescriptions,places.types,places.photos,places.priceLevel,places.businessStatus",
       },
       body: JSON.stringify({
         includedTypes: [
@@ -55,5 +55,11 @@ export async function fetchNearbyActivities(
     places?: Array<Place>
   }
 
-  return data.places ?? []
+  const places = data.places ?? []
+
+  return places.filter(
+    (p) =>
+      p.businessStatus !== "CLOSED_TEMPORARILY" &&
+      p.businessStatus !== "CLOSED_PERMANENTLY"
+  )
 }
