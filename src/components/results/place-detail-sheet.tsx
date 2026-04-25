@@ -261,7 +261,7 @@ function OpeningHours({
               {weekdayDescriptions.map((day, index) => (
                 <p
                   key={index}
-                  className="text-sm leading-relaxed text-muted-foreground"
+                  className="text-sm leading-relaxed text-foreground"
                 >
                   {day}
                 </p>
