@@ -46,7 +46,7 @@ function ResultsPage() {
   const isLoading = !searchResult.data
 
   return (
-    <div className="flex h-svh flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <AnimatePresence mode="wait">
         {isLoading ? (
           <ResultsLoadingScreen key="loading" />

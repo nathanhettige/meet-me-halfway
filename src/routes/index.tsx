@@ -16,7 +16,7 @@ function HomePage() {
   }, [])
 
   return (
-    <div className="sky-gradient relative h-svh overflow-hidden">
+    <div className="sky-gradient relative h-dvh overflow-hidden">
       {/* Atmospheric glow overlays */}
       <div
         className="pointer-events-none absolute opacity-40"
