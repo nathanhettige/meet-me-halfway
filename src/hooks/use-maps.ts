@@ -92,11 +92,17 @@ export function usePlacePhotos(
 
   // Run all queries — React Query rules of hooks require a stable call count,
   // so we always call useQuery for each slot (up to maxPhotos).
-  const q0 = useQuery<string>({ ...queries[0], enabled: !!queries[0] })
-  const q1 = useQuery<string>({ ...queries[1], enabled: !!queries[1] })
-  const q2 = useQuery<string>({ ...queries[2], enabled: !!queries[2] })
-  const q3 = useQuery<string>({ ...queries[3], enabled: !!queries[3] })
-  const q4 = useQuery<string>({ ...queries[4], enabled: !!queries[4] })
+  const noop = {
+    queryKey: ["place-photo", "noop"],
+    queryFn: () => "" as string,
+    enabled: false,
+    staleTime: Infinity,
+  }
+  const q0 = useQuery<string>(queries[0] ?? noop)
+  const q1 = useQuery<string>(queries[1] ?? noop)
+  const q2 = useQuery<string>(queries[2] ?? noop)
+  const q3 = useQuery<string>(queries[3] ?? noop)
+  const q4 = useQuery<string>(queries[4] ?? noop)
 
   const all = [q0, q1, q2, q3, q4].slice(0, limited.length)
 

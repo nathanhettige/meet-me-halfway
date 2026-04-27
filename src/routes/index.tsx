@@ -54,7 +54,7 @@ function HomePage() {
       <CloudBackground />
       <BalloonText started={started} onStart={handleStart} />
       <LandingForm visible={started} returning={returning} />
-      <footer className="absolute bottom-3 left-0 right-0 z-10 text-center text-xs text-white/60">
+      <footer className="absolute right-0 bottom-3 left-0 z-10 text-center text-xs text-white/60">
         <span>built by nathan hettige</span>
         <span className="mx-1.5">·</span>
         <a

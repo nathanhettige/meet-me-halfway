@@ -168,13 +168,19 @@ export function LandingForm({
                                           label,
                                         })
                                         // If this input owned the bias and was cleared, release ownership
-                                        if (!placeId && biasOwnerIndex === index) {
+                                        if (
+                                          !placeId &&
+                                          biasOwnerIndex === index
+                                        ) {
                                           setLocationBias(null)
                                           setBiasOwnerIndex(null)
                                         }
                                       }}
                                       onCoordinatesResolved={(coords) => {
-                                        if (biasOwnerIndex === null || biasOwnerIndex === index) {
+                                        if (
+                                          biasOwnerIndex === null ||
+                                          biasOwnerIndex === index
+                                        ) {
                                           setLocationBias(coords)
                                           setBiasOwnerIndex(index)
                                         }
@@ -187,8 +193,13 @@ export function LandingForm({
                                               if (biasOwnerIndex === index) {
                                                 setLocationBias(null)
                                                 setBiasOwnerIndex(null)
-                                              } else if (biasOwnerIndex !== null && biasOwnerIndex > index) {
-                                                setBiasOwnerIndex(biasOwnerIndex - 1)
+                                              } else if (
+                                                biasOwnerIndex !== null &&
+                                                biasOwnerIndex > index
+                                              ) {
+                                                setBiasOwnerIndex(
+                                                  biasOwnerIndex - 1
+                                                )
                                               }
                                             }
                                           : undefined

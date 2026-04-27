@@ -105,7 +105,7 @@ export function MiniMap({
       {/* Expand/collapse toggle */}
       <button
         onClick={onToggleExpand}
-        className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground"
+        className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm"
       >
         {isExpanded ? (
           <>

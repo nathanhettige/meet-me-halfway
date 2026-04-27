@@ -15,7 +15,6 @@ import { fetchRouteMatrix } from "@/server/maps/fetch-route-matrix"
 import { searchHandler } from "@/server/maps/search"
 import { snapMidpointToPopulatedArea } from "@/server/maps/snap-midpoint"
 
-
 // Mock all API functions
 vi.mock("@/server/maps/fetch-place-details", () => ({
   fetchPlaceDetails: vi.fn(),

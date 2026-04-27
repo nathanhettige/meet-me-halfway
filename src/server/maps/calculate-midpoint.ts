@@ -1,6 +1,8 @@
 import type { Coordinates } from "./types"
 
-export function calculateMidpoint(coordinates: Array<Coordinates>): Coordinates {
+export function calculateMidpoint(
+  coordinates: Array<Coordinates>
+): Coordinates {
   if (coordinates.length === 0) {
     return { latitude: 0, longitude: 0 }
   }
