@@ -203,7 +203,10 @@ export class SimulatedWorld {
     if (!coords) {
       throw new Error(`SimulatedWorld: unknown placeId "${placeId}"`)
     }
-    return Promise.resolve({ location: coords })
+    return Promise.resolve({
+      location: coords,
+      displayName: { text: placeId },
+    })
   }
 
   /** Mock for fetchNearbyActivities */

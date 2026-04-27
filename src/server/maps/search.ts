@@ -317,6 +317,7 @@ export async function searchHandler(data: {
     latitude: d.location.latitude,
     longitude: d.location.longitude,
   }))
+  const originNames = details.map((d) => d.displayName.text)
 
   // Phase 1: Compute initial midpoint
   // For 2 people: geometric centroid (midpoint of the line)
@@ -709,6 +710,7 @@ export async function searchHandler(data: {
 
   return {
     coordinates,
+    originNames,
     midpoint: bestMidpoint,
     places: finalPlaces,
     iterations,

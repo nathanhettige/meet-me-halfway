@@ -8,6 +8,7 @@ import { useSearch } from "@/hooks/use-maps"
 import { CloudBackground } from "@/components/clouds"
 import { ResultsHeader } from "@/components/results/results-header"
 import { MiniMap } from "@/components/results/mini-map"
+import { DriveTimes } from "@/components/results/drive-times"
 import { PlaceCard } from "@/components/results/place-card"
 import { PlaceDetailSheet } from "@/components/results/place-detail-sheet"
 
@@ -185,6 +186,8 @@ function ResultsContent({
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
   const filteredPlaces = data.places.filter((place) => place.photos?.length)
+  const bestIteration = data.iterations.find((it) => it.isBest)
+  const travelTimes = bestIteration?.travelTimes ?? []
 
   return (
     <motion.div
@@ -224,6 +227,22 @@ function ResultsContent({
           />
         </APIProvider>
       </motion.div>
+
+      {/* Drive times — fades in */}
+      {travelTimes.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="pt-4"
+        >
+          <DriveTimes
+            originNames={data.originNames}
+            travelTimes={travelTimes}
+            timeDifference={data.performance.timeDifference}
+          />
+        </motion.div>
+      )}
 
       <main className="px-4 pt-5 pb-8">
         {/* Section header — fades up */}

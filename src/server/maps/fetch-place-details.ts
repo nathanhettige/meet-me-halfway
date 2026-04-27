@@ -12,7 +12,7 @@ export async function fetchPlaceDetails(
   const response = await fetch(url.toString(), {
     headers: {
       "X-Goog-Api-Key": process.env.MAPS_API_KEY!,
-      "X-Goog-FieldMask": "location",
+      "X-Goog-FieldMask": "location,displayName",
     },
   })
 
@@ -27,6 +27,9 @@ export async function fetchPlaceDetails(
     location: {
       longitude: number
       latitude: number
+    }
+    displayName: {
+      text: string
     }
   }
 

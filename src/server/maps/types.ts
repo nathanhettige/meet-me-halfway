@@ -63,6 +63,7 @@ export type SnapResult = {
 
 export type SearchResult = {
   coordinates: Array<Coordinates>
+  originNames: Array<string>
   midpoint: Coordinates
   places: Array<Place>
   iterations: Array<IterationResult>
