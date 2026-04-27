@@ -767,7 +767,9 @@ export async function searchHandler(data: {
     foundOnIteration: iterations[bestIterationIndex]?.iteration ?? 1,
     addresses: origins.map((o) => o.locality).join(", "),
     addressCount: origins.length,
-  }).catch(() => {})
+  }).catch(() => {
+    console.error("failed to track search_completed event")
+  })
 
   return {
     coordinates,
