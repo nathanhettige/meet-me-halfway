@@ -1,3 +1,4 @@
+import { track } from "@vercel/analytics/server"
 import { createServerFn } from "@tanstack/react-start"
 import { calculateMidpoint } from "./calculate-midpoint"
 import { fetchNearbyActivities } from "./fetch-nearby-activities"
@@ -759,6 +760,14 @@ export async function searchHandler(data: {
       driveTimes[placeId] = times
     }
   }
+
+  await track("search_completed", {
+    timeDifference: iterations[bestIterationIndex]?.timeDifference ?? 0,
+    percentageDiff: iterations[bestIterationIndex]?.percentageDiff ?? 0,
+    foundOnIteration: iterations[bestIterationIndex]?.iteration ?? 1,
+    addresses: origins.map((o) => o.locality).join(", "),
+    addressCount: origins.length,
+  }).catch(() => {})
 
   return {
     coordinates,
