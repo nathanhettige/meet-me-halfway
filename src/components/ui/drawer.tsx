@@ -60,7 +60,7 @@ function DrawerContent({
       >
         <div
           className="flex min-h-0 flex-col overflow-hidden rounded-t-2xl bg-background"
-          style={{ height: "calc(100vh - var(--snap-point-height, 0px))" }}
+          style={{ height: "calc(100dvh - var(--snap-point-height, 0px))" }}
         >
           <div className="mx-auto mt-4 h-1.5 w-12 flex-shrink-0 rounded-full bg-muted" />
           {children}
