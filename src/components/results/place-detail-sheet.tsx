@@ -64,6 +64,7 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
       snapPoints={[...SNAP_POINTS]}
       activeSnapPoint={snap}
       setActiveSnapPoint={(s) => setSnap(s as SnapPoint | null)}
+      fadeFromIndex={0}
     >
       <DrawerContent>
         <DrawerHeader className="pt-4 pb-3">
