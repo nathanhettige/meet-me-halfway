@@ -19,7 +19,7 @@ export function ResultsHeader({
     if (canShare) {
       try {
         await navigator.share({
-          title: `Meet halfway in ${cityName}`,
+          title: `Meet me halfway in ${cityName}?`,
           text: `Found ${placeCount} spots to meet halfway!`,
           url: window.location.href,
         })
