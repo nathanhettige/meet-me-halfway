@@ -16,7 +16,7 @@ import { scoreResult } from "@/server/maps/__tests__/test-simulation"
 // ---------------------------------------------------------------------------
 
 describe("computeConvergenceThresholds", () => {
-  it("short trip (~15 min avg) clamps time to 60s, percentage to 10%, iterations to 5", () => {
+  it("short trip (~15 min avg) clamps time to 60s, percentage to 10%, iterations to 3", () => {
     // avg = 900s
     const result = computeConvergenceThresholds([900, 900])
 
@@ -25,34 +25,34 @@ describe("computeConvergenceThresholds", () => {
     expect(result.maxTimeDiffSeconds).toBe(60)
     // (1800 / 900) * 5 = 10, clamped to 10
     expect(result.maxPercentageDiff).toBe(10)
-    // ceil(900 / 1800) + 4 = 1 + 4 = 5, clamped to 5
-    expect(result.maxIterations).toBe(5)
+    // ceil(900 / 1800) + 2 = 1 + 2 = 3, clamped to 3
+    expect(result.maxIterations).toBe(3)
   })
 
-  it("medium trip (~1h avg) computes unclamped time threshold, percentage clamps to 3%", () => {
+  it("medium trip (~1h avg) computes unclamped time threshold, percentage clamps to 5%", () => {
     // avg = 3600s
     const result = computeConvergenceThresholds([3600, 3600])
 
     expect(result.averageTravelTime).toBe(3600)
     // 3600 * 0.02 = 72
     expect(result.maxTimeDiffSeconds).toBe(72)
-    // (1800 / 3600) * 5 = 2.5, clamped up to 3
-    expect(result.maxPercentageDiff).toBe(3)
-    // ceil(3600 / 1800) + 4 = 2 + 4 = 6
-    expect(result.maxIterations).toBe(6)
+    // (1800 / 3600) * 5 = 2.5, clamped up to 5
+    expect(result.maxPercentageDiff).toBe(5)
+    // ceil(3600 / 1800) + 2 = 2 + 2 = 4, clamped to 4
+    expect(result.maxIterations).toBe(4)
   })
 
-  it("long trip (~3h avg) has proportional time threshold, percentage clamped at 3%", () => {
+  it("long trip (~3h avg) has proportional time threshold, percentage clamped at 5%", () => {
     // avg = 10800s
     const result = computeConvergenceThresholds([10800, 10800])
 
     expect(result.averageTravelTime).toBe(10800)
     // 10800 * 0.02 = 216
     expect(result.maxTimeDiffSeconds).toBe(216)
-    // (1800 / 10800) * 5 ≈ 0.833, clamped to 3
-    expect(result.maxPercentageDiff).toBe(3)
-    // ceil(10800 / 1800) + 4 = 6 + 4 = 10
-    expect(result.maxIterations).toBe(10)
+    // (1800 / 10800) * 5 ≈ 0.833, clamped to 5
+    expect(result.maxPercentageDiff).toBe(5)
+    // ceil(10800 / 1800) + 2 = 6 + 2 = 8, clamped to 5
+    expect(result.maxIterations).toBe(5)
   })
 
   it("very long trip (~10h avg) clamps everything to max", () => {
@@ -62,10 +62,10 @@ describe("computeConvergenceThresholds", () => {
     expect(result.averageTravelTime).toBe(36000)
     // 36000 * 0.02 = 720, clamped down to 600
     expect(result.maxTimeDiffSeconds).toBe(600)
-    // (1800 / 36000) * 5 = 0.25, clamped to 3
-    expect(result.maxPercentageDiff).toBe(3)
-    // ceil(36000 / 1800) + 4 = 20 + 4 = 24, clamped to 15
-    expect(result.maxIterations).toBe(15)
+    // (1800 / 36000) * 5 = 0.25, clamped to 5
+    expect(result.maxPercentageDiff).toBe(5)
+    // ceil(36000 / 1800) + 2 = 20 + 2 = 22, clamped to 5
+    expect(result.maxIterations).toBe(5)
   })
 
   it("single person", () => {
@@ -76,8 +76,8 @@ describe("computeConvergenceThresholds", () => {
     expect(result.maxTimeDiffSeconds).toBe(60)
     // (1800 / 1800) * 5 = 5
     expect(result.maxPercentageDiff).toBe(5)
-    // ceil(1800 / 1800) + 4 = 1 + 4 = 5
-    expect(result.maxIterations).toBe(5)
+    // ceil(1800 / 1800) + 2 = 1 + 2 = 3
+    expect(result.maxIterations).toBe(3)
   })
 
   it("two equal times", () => {
@@ -95,10 +95,10 @@ describe("computeConvergenceThresholds", () => {
     expect(result.averageTravelTime).toBe(3900)
     // 3900 * 0.02 = 78
     expect(result.maxTimeDiffSeconds).toBe(78)
-    // (1800 / 3900) * 5 ≈ 2.308, clamped to 3
-    expect(result.maxPercentageDiff).toBe(3)
-    // ceil(3900 / 1800) + 4 = 3 + 4 = 7
-    expect(result.maxIterations).toBe(7)
+    // (1800 / 3900) * 5 ≈ 2.308, clamped to 5
+    expect(result.maxPercentageDiff).toBe(5)
+    // ceil(3900 / 1800) + 2 = 3 + 2 = 5, clamped to 5
+    expect(result.maxIterations).toBe(5)
   })
 })
 

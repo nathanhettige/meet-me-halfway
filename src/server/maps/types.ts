@@ -55,6 +55,16 @@ export type Place = {
   businessStatus?: string
 }
 
+/** Lightweight place returned by minimal Nearby Search (only id, location, displayName, businessStatus) */
+export type MinimalPlace = {
+  id: string
+  location: Coordinates
+  displayName: {
+    text: string
+  }
+  businessStatus?: string
+}
+
 export type SnapResult = {
   location: Coordinates
   snapDistanceKm: number

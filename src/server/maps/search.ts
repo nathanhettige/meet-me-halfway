@@ -1,10 +1,8 @@
 import { createServerFn } from "@tanstack/react-start"
 import { calculateMidpoint } from "./calculate-midpoint"
-import { decodePolyline } from "./decode-polyline"
 import { fetchNearbyActivities } from "./fetch-nearby-activities"
 import { fetchNearbyCities } from "./fetch-nearby-cities"
 import { fetchPlaceDetails } from "./fetch-place-details"
-import { fetchRoute } from "./fetch-route"
 import { fetchRouteMatrix } from "./fetch-route-matrix"
 import { snapMidpointToPopulatedArea } from "./snap-midpoint"
 import type { RouteMatrixResult } from "./fetch-route-matrix"
@@ -18,13 +16,13 @@ import type {
 
 // --- Constants ---
 
-const CANDIDATES_PER_ITERATION = 8
+const CANDIDATES_PER_ITERATION = 5
 const OSCILLATION_THRESHOLD = 0.005 // ~500m in lat/lng degrees
 
 const DEFAULT_THRESHOLDS: ConvergenceThresholds = {
   maxTimeDiffSeconds: 30,
   maxPercentageDiff: 5,
-  maxIterations: 10,
+  maxIterations: 5,
   averageTravelTime: 0,
 }
 
@@ -46,8 +44,8 @@ function haversineKm(a: Coordinates, b: Coordinates): number {
 /**
  * Compute dynamic convergence thresholds based on trip length.
  * - Time threshold: 2% of avg travel time, clamped to [60s, 600s]
- * - Percentage threshold: inversely scaled, clamped to [3%, 10%]
- * - Max iterations: scales with trip length, clamped to [5, 15]
+ * - Percentage threshold: inversely scaled, clamped to [5%, 10%]
+ * - Max iterations: scales with trip length, clamped to [3, 5]
  */
 export function computeConvergenceThresholds(
   travelTimes: Array<number>
@@ -62,12 +60,12 @@ export function computeConvergenceThresholds(
 
   const maxPercentageDiff = Math.min(
     10,
-    Math.max(3, (1800 / Math.max(averageTravelTime, 1)) * 5)
+    Math.max(5, (1800 / Math.max(averageTravelTime, 1)) * 5)
   )
 
   const maxIterations = Math.min(
-    15,
-    Math.max(5, Math.ceil(averageTravelTime / 1800) + 4)
+    5,
+    Math.max(3, Math.ceil(averageTravelTime / 1800) + 2)
   )
 
   return {
@@ -348,6 +346,9 @@ export async function searchHandler(data: {
   let bestMidpoint = currentMidpoint
   const midpointHistory: Array<Coordinates> = []
   const isMultiPerson = data.placeIds.length > 2
+  let extraIterationsGranted = 0
+  const MAX_EXTRA_ITERATIONS = 2
+  let oscillationDetected = false
 
   // For multi-person: on the first iteration, also explore all pairwise
   // midpoints to find the best starting position. This avoids getting stuck
@@ -380,16 +381,22 @@ export async function searchHandler(data: {
   }
 
   let isFirstIteration = true
+  const testedPlaceIds = new Set<string>()
 
   // Loop bound uses thresholds.maxIterations, which updates after first
-  // successful route matrix call. This is intentional: the default (10)
+  // successful route matrix call. This is intentional: the default (5)
   // applies until we know the trip scale.
   for (let i = 0; i < thresholds.maxIterations; i++) {
     // Find candidate venues near current midpoint
+    // After oscillation: use more candidates and wider radius to escape barrier
+    const iterCandidateCount = oscillationDetected ? 8 : CANDIDATES_PER_ITERATION
+    const iterSearchRadius = oscillationDetected ? 35000 : undefined
     // For multi-person first iteration: also search around all pairwise midpoints
     const allPlaces = await fetchNearbyActivities(
       currentMidpoint,
-      CANDIDATES_PER_ITERATION
+      iterCandidateCount,
+      true,
+      iterSearchRadius
     )
 
     // Track which search center each candidate came from
@@ -400,7 +407,7 @@ export async function searchHandler(data: {
     if (isMultiPerson && explorationPoints.length > 0) {
       // On first iteration, explore all pairwise midpoints
       const explorationResults = await Promise.all(
-        explorationPoints.map((point) => fetchNearbyActivities(point, 4))
+        explorationPoints.map((point) => fetchNearbyActivities(point, 4, true))
       )
       for (let e = 0; e < explorationResults.length; e++) {
         for (const place of explorationResults[e]) {
@@ -450,9 +457,33 @@ export async function searchHandler(data: {
     const maxCandidates =
       isFirstIteration && isMultiPerson
         ? places.length
-        : CANDIDATES_PER_ITERATION
-    const candidates = places.slice(0, maxCandidates)
+        : iterCandidateCount
+    // Deduplicate: skip candidates already tested in previous iterations
+    const candidates = places
+      .filter((p) => !testedPlaceIds.has(p.id))
+      .slice(0, maxCandidates)
     const candidatePlaceIds = candidates.map((p) => p.id)
+
+    if (candidatePlaceIds.length === 0) {
+      console.log(
+        `Iteration ${i + 1}: All candidates already tested, stopping search`
+      )
+      iterations.push({
+        midpoint: { ...currentMidpoint },
+        timeDifference: 0,
+        percentageDiff: 0,
+        isBest: false,
+        iteration: i + 1,
+        candidatesTested: 0,
+        travelTimes: [],
+      })
+      break
+    }
+
+    // Track tested place IDs
+    for (const id of candidatePlaceIds) {
+      testedPlaceIds.add(id)
+    }
 
     const routes = await fetchRouteMatrix(data.placeIds, candidatePlaceIds)
     const scores = scoreCandidates(
@@ -505,7 +536,6 @@ export async function searchHandler(data: {
       )
     }
 
-    const maxTime = Math.max(...travelTimes)
     const timeDifference = best.timeDifference
     const percentageDiff = best.percentageDiff
 
@@ -577,28 +607,81 @@ export async function searchHandler(data: {
     }
     isFirstIteration = false
 
-    // Oscillation detection
+    // Oscillation detection: position-based and time-based
     midpointHistory.push({ ...currentMidpoint })
-    if (midpointHistory.length >= 3) {
-      const twoAgo = midpointHistory[midpointHistory.length - 3]
-      if (coordDistance(currentMidpoint, twoAgo) < OSCILLATION_THRESHOLD) {
-        if (isMultiPerson) {
-          // For multi-person oscillation: set midpoint to average of
-          // oscillating positions and stop iterating — we've found the
-          // best the algorithm can do for this arrangement
+
+    // Time-domain oscillation: detect when the farthest person has flipped
+    // at least once in recent iterations — a sign of a barrier between origins
+    const maxTimeIndex = travelTimes.indexOf(Math.max(...travelTimes))
+    let timeOscillation = false
+    if (!isMultiPerson && iterations.length >= 2) {
+      let flips = 0
+      let lastMaxIdx = maxTimeIndex
+      for (let j = iterations.length - 1; j >= 0 && j >= iterations.length - 3; j--) {
+        const prevTimes = iterations[j].travelTimes ?? []
+        if (prevTimes.length < 2) continue
+        const prevMaxIdx = prevTimes.indexOf(Math.max(...prevTimes))
+        if (prevMaxIdx !== lastMaxIdx) {
+          flips++
+          lastMaxIdx = prevMaxIdx
+        }
+      }
+      // At least one flip in the last 3 iterations means barrier oscillation
+      if (flips >= 1) {
+        timeOscillation = true
+      }
+    }
+
+    const positionOscillation =
+      midpointHistory.length >= 3 &&
+      coordDistance(
+        currentMidpoint,
+        midpointHistory[midpointHistory.length - 3]
+      ) < OSCILLATION_THRESHOLD
+
+    if (positionOscillation || timeOscillation) {
+      if (isMultiPerson) {
+        // For multi-person oscillation: set midpoint to average of
+        // oscillating positions and stop iterating — we've found the
+        // best the algorithm can do for this arrangement
+        const twoAgo = midpointHistory[midpointHistory.length - 3]
+        if (twoAgo) {
           currentMidpoint = {
             latitude: (currentMidpoint.latitude + twoAgo.latitude) / 2,
             longitude: (currentMidpoint.longitude + twoAgo.longitude) / 2,
           }
+        }
+        console.log(
+          `Iteration ${i + 1}: Multi-person oscillation detected, settling at average position`
+        )
+        // Use this as the best midpoint if it's better
+        bestMidpoint = currentMidpoint
+        bestIterationIndex = iterations.length - 1
+        break
+      } else {
+        alpha *= 0.5
+        oscillationDetected = true
+        // Grant extra iterations to work through barrier oscillation (once only)
+        if (
+          thresholds.maxIterations - i <= 1 &&
+          extraIterationsGranted < MAX_EXTRA_ITERATIONS
+        ) {
+          const grant = MAX_EXTRA_ITERATIONS - extraIterationsGranted
+          thresholds = {
+            ...thresholds,
+            maxIterations: thresholds.maxIterations + grant,
+          }
+          extraIterationsGranted += grant
           console.log(
-            `Iteration ${i + 1}: Multi-person oscillation detected, settling at average position`
+            `Iteration ${i + 1}: Oscillation detected, reducing alpha to ${alpha.toFixed(3)} and granting ${grant} extra iterations (max now ${thresholds.maxIterations})`
           )
-          // Use this as the best midpoint if it's better
-          bestMidpoint = currentMidpoint
-          bestIterationIndex = iterations.length - 1
+        } else if (extraIterationsGranted > 0) {
+          // Already granted extra iterations and still oscillating — give up
+          console.log(
+            `Iteration ${i + 1}: Still oscillating after extra iterations, stopping`
+          )
           break
         } else {
-          alpha *= 0.5
           console.log(
             `Iteration ${i + 1}: Oscillation detected, reducing alpha to ${alpha.toFixed(3)}`
           )
@@ -606,96 +689,15 @@ export async function searchHandler(data: {
       }
     }
 
-    // For 2-person: try route-aware shifting along the farthest person's route
-    let shifted = false
-    if (!isMultiPerson) {
-      try {
-        const maxTimeIndex = travelTimes.indexOf(maxTime)
-        const farthestRoute = await fetchRoute(
-          data.placeIds[maxTimeIndex],
-          currentMidpoint
-        )
-        const routePoints = decodePolyline(farthestRoute.encodedPolyline)
-
-        if (routePoints.length >= 2) {
-          // Calculate cumulative distances along the polyline
-          const cumulativeDistances = [0]
-          for (let j = 1; j < routePoints.length; j++) {
-            const prev = routePoints[j - 1]
-            const curr = routePoints[j]
-            const segmentDist = Math.sqrt(
-              (curr.latitude - prev.latitude) ** 2 +
-                (curr.longitude - prev.longitude) ** 2
-            )
-            cumulativeDistances.push(cumulativeDistances[j - 1] + segmentDist)
-          }
-
-          const totalDistance =
-            cumulativeDistances[cumulativeDistances.length - 1]
-
-          const otherTimes = travelTimes.filter(
-            (_, idx) => idx !== maxTimeIndex
-          )
-          const avgOtherTime =
-            otherTimes.reduce((sum, t) => sum + t, 0) / otherTimes.length
-          const targetFraction = Math.min(
-            Math.max(avgOtherTime / maxTime, 0.3),
-            0.95
-          )
-          const targetDistance = targetFraction * totalDistance
-
-          let segmentIndex = routePoints.length - 2
-          for (let j = 1; j < cumulativeDistances.length; j++) {
-            if (cumulativeDistances[j] >= targetDistance) {
-              segmentIndex = j - 1
-              break
-            }
-          }
-
-          const segmentStart = cumulativeDistances[segmentIndex]
-          const segmentEnd = cumulativeDistances[segmentIndex + 1]
-          const segmentFraction =
-            segmentEnd > segmentStart
-              ? (targetDistance - segmentStart) / (segmentEnd - segmentStart)
-              : 0
-
-          const p1 = routePoints[segmentIndex]
-          const p2 = routePoints[segmentIndex + 1]
-
-          const routeShiftedPoint = {
-            latitude:
-              p1.latitude + (p2.latitude - p1.latitude) * segmentFraction,
-            longitude:
-              p1.longitude + (p2.longitude - p1.longitude) * segmentFraction,
-          }
-
-          currentMidpoint = {
-            latitude:
-              currentMidpoint.latitude +
-              alpha * (routeShiftedPoint.latitude - currentMidpoint.latitude),
-            longitude:
-              currentMidpoint.longitude +
-              alpha * (routeShiftedPoint.longitude - currentMidpoint.longitude),
-          }
-          shifted = true
-        }
-      } catch {
-        // Route fetch failed — fall through to target-based shift
-      }
-    }
-
-    // Shift toward target (for multi-person this is the minimax target
-    // considering all above-median travelers; for 2-person this is the
-    // weighted centroid fallback)
-    if (!shifted) {
-      currentMidpoint = {
-        latitude:
-          currentMidpoint.latitude +
-          alpha * (target.latitude - currentMidpoint.latitude),
-        longitude:
-          currentMidpoint.longitude +
-          alpha * (target.longitude - currentMidpoint.longitude),
-      }
+    // Shift toward target (for multi-person this is the gradient-based target;
+    // for 2-person this is the weighted centroid)
+    currentMidpoint = {
+      latitude:
+        currentMidpoint.latitude +
+        alpha * (target.latitude - currentMidpoint.latitude),
+      longitude:
+        currentMidpoint.longitude +
+        alpha * (target.longitude - currentMidpoint.longitude),
     }
   }
 
@@ -705,7 +707,7 @@ export async function searchHandler(data: {
   }
 
   // Use the best midpoint found for final venue search
-  const finalPlaces = await fetchNearbyActivities(bestMidpoint)
+  const finalPlaces = await fetchNearbyActivities(bestMidpoint, 15)
 
   return {
     coordinates,

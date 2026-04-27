@@ -10,7 +10,6 @@ import type { Scenario, ScoreResult } from "./test-simulation"
 import { fetchNearbyActivities } from "@/server/maps/fetch-nearby-activities"
 import { fetchNearbyCities } from "@/server/maps/fetch-nearby-cities"
 import { fetchPlaceDetails } from "@/server/maps/fetch-place-details"
-import { fetchRoute } from "@/server/maps/fetch-route"
 import { fetchRouteMatrix } from "@/server/maps/fetch-route-matrix"
 import { searchHandler } from "@/server/maps/search"
 import { snapMidpointToPopulatedArea } from "@/server/maps/snap-midpoint"
@@ -28,9 +27,6 @@ vi.mock("@/server/maps/fetch-nearby-cities", () => ({
 }))
 vi.mock("@/server/maps/fetch-route-matrix", () => ({
   fetchRouteMatrix: vi.fn(),
-}))
-vi.mock("@/server/maps/fetch-route", () => ({
-  fetchRoute: vi.fn(),
 }))
 vi.mock("@/server/maps/snap-midpoint", () => ({
   snapMidpointToPopulatedArea: vi.fn(),
@@ -52,7 +48,6 @@ async function runScenario(scenario: Scenario): Promise<{
   )
   vi.mocked(fetchNearbyCities).mockImplementation(world.mockFetchNearbyCities)
   vi.mocked(fetchRouteMatrix).mockImplementation(world.mockFetchRouteMatrix)
-  vi.mocked(fetchRoute).mockImplementation(world.mockFetchRoute)
   vi.mocked(snapMidpointToPopulatedArea).mockImplementation(
     world.mockSnapMidpointToPopulatedArea
   )
