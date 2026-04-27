@@ -1,7 +1,7 @@
 import type { Coordinates, MinimalPlace, Place } from "./types"
 
 const FULL_FIELD_MASK =
-  "places.id,places.displayName.text,places.formattedAddress,places.addressComponents,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.openNow,places.currentOpeningHours.weekdayDescriptions,places.types,places.photos,places.priceLevel,places.businessStatus"
+  "places.id,places.displayName.text,places.formattedAddress,places.addressComponents,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.websiteUri,places.currentOpeningHours.openNow,places.currentOpeningHours.weekdayDescriptions,places.types,places.photos,places.priceLevel,places.businessStatus,places.editorialSummary,places.reviews"
 
 const MINIMAL_FIELD_MASK =
   "places.id,places.displayName.text,places.location,places.businessStatus"

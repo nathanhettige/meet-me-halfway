@@ -53,6 +53,15 @@ export type Place = {
   priceLevel?: string
   userRatingCount?: number
   businessStatus?: string
+  editorialSummary?: {
+    text: string
+  }
+  reviews?: Array<{
+    text?: { text: string }
+    rating: number
+    relativePublishTimeDescription?: string
+    authorAttribution?: { displayName: string }
+  }>
 }
 
 /** Lightweight place returned by minimal Nearby Search (only id, location, displayName, businessStatus) */
@@ -71,10 +80,17 @@ export type SnapResult = {
   cityName: string
 }
 
+export type PlaceDriveTime = {
+  durationSeconds: number
+  distanceMeters: number
+}
+
 export type SearchResult = {
   coordinates: Array<Coordinates>
+  origins: Array<{ locality: string; coordinates: Coordinates }>
   midpoint: Coordinates
   places: Array<Place>
+  driveTimes: Record<string, Array<PlaceDriveTime>>
   iterations: Array<IterationResult>
   performance: {
     foundOnIteration: number

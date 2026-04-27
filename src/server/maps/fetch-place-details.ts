@@ -1,10 +1,10 @@
+import type { PlaceAddressComponent } from "./types"
+
 export async function fetchPlaceDetails(
   placeId: string,
   sessionToken?: string
 ) {
-  const url = new URL(
-    `https://places.googleapis.com/v1/places/${placeId}`
-  )
+  const url = new URL(`https://places.googleapis.com/v1/places/${placeId}`)
   if (sessionToken) {
     url.searchParams.set("sessionToken", sessionToken)
   }
@@ -12,7 +12,7 @@ export async function fetchPlaceDetails(
   const response = await fetch(url.toString(), {
     headers: {
       "X-Goog-Api-Key": process.env.MAPS_API_KEY!,
-      "X-Goog-FieldMask": "location",
+      "X-Goog-FieldMask": "location,addressComponents",
     },
   })
 
@@ -28,6 +28,7 @@ export async function fetchPlaceDetails(
       longitude: number
       latitude: number
     }
+    addressComponents?: Array<PlaceAddressComponent>
   }
 
   return data

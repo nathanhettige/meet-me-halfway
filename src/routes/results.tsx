@@ -270,6 +270,10 @@ function ResultsContent({
 
       <PlaceDetailSheet
         place={selectedPlace}
+        driveTimes={
+          selectedPlace ? data.driveTimes[selectedPlace.id] : undefined
+        }
+        origins={data.origins}
         onClose={() => setSelectedPlace(null)}
       />
     </motion.div>

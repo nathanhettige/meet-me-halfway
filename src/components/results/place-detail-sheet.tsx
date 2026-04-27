@@ -1,14 +1,16 @@
 import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
+  Car,
   ChevronDown,
   Clock,
   Globe,
   MapPin,
+  MessageSquareText,
   Navigation,
   Star,
 } from "lucide-react"
-import type { Place } from "@/server/maps/types"
+import type { Coordinates, Place, PlaceDriveTime } from "@/server/maps/types"
 import {
   Drawer,
   DrawerContent,
@@ -19,15 +21,27 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { usePlacePhotos } from "@/hooks/use-maps"
 
+type Origin = {
+  locality: string
+  coordinates: Coordinates
+}
+
 type PlaceDetailSheetProps = {
   place: Place | null
+  driveTimes?: Array<PlaceDriveTime>
+  origins?: Array<Origin>
   onClose: () => void
 }
 
 const SNAP_POINTS = [0.67, 0.95] as const
 type SnapPoint = (typeof SNAP_POINTS)[number]
 
-export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
+export function PlaceDetailSheet({
+  place,
+  driveTimes,
+  origins,
+  onClose,
+}: PlaceDetailSheetProps) {
   const photosQuery = usePlacePhotos(place?.photos, 5)
   const [snap, setSnap] = useState<SnapPoint | null>(SNAP_POINTS[0])
 
@@ -169,6 +183,15 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
             isExpanded ? "overflow-y-auto" : "overflow-hidden"
           )}
         >
+          {/* Editorial summary */}
+          {place.editorialSummary?.text && (
+            <div className="mb-4 rounded-xl bg-muted/40 p-4">
+              <p className="text-sm leading-relaxed text-foreground">
+                {place.editorialSummary.text}
+              </p>
+            </div>
+          )}
+
           {/* Address card */}
           <div className="mb-4 rounded-xl bg-muted/40 p-4">
             <p className="flex items-start gap-2 text-sm leading-snug text-foreground">
@@ -181,6 +204,25 @@ export function PlaceDetailSheet({ place, onClose }: PlaceDetailSheetProps) {
           {place.currentOpeningHours && (
             <OpeningHours
               hours={place.currentOpeningHours}
+              isExpanded={isExpanded}
+              onExpand={() => setSnap(SNAP_POINTS[1])}
+            />
+          )}
+
+          {/* Drive times */}
+          {driveTimes && driveTimes.length > 0 && (
+            <DriveTimes
+              driveTimes={driveTimes}
+              origins={origins}
+              isExpanded={isExpanded}
+              onExpand={() => setSnap(SNAP_POINTS[1])}
+            />
+          )}
+
+          {/* Reviews */}
+          {place.reviews && place.reviews.length > 0 && (
+            <Reviews
+              reviews={place.reviews}
               isExpanded={isExpanded}
               onExpand={() => setSnap(SNAP_POINTS[1])}
             />
@@ -275,6 +317,209 @@ function OpeningHours({
   )
 }
 
+function DriveTimes({
+  driveTimes,
+  origins,
+  isExpanded,
+  onExpand,
+}: {
+  driveTimes: Array<PlaceDriveTime>
+  origins?: Array<Origin>
+  isExpanded: boolean
+  onExpand: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  const validTimes = driveTimes.filter((dt) => dt.durationSeconds > 0)
+  const avgSeconds =
+    validTimes.length > 0
+      ? Math.round(
+          validTimes.reduce((sum, dt) => sum + dt.durationSeconds, 0) /
+            validTimes.length
+        )
+      : 0
+
+  return (
+    <div className="mb-4 rounded-xl bg-muted/40">
+      <button
+        data-vaul-no-drag
+        onClick={() => {
+          if (!isExpanded) {
+            onExpand()
+            setExpanded(true)
+            return
+          }
+          setExpanded((v) => !v)
+        }}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <Car className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-foreground">
+            drive times
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {avgSeconds > 0 && (
+            <span className="text-sm font-semibold text-muted-foreground">
+              avg {formatDuration(avgSeconds)}
+            </span>
+          )}
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          >
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </motion.div>
+        </div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.15, ease: "easeInOut" },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-1.5 px-4 pt-1 pb-3">
+              {driveTimes.map((dt, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-foreground">
+                    {origins?.[i]?.locality ?? `person ${i + 1}`}
+                  </span>
+                  <span className="text-foreground">
+                    {dt.durationSeconds > 0
+                      ? formatDuration(dt.durationSeconds)
+                      : "unavailable"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function Reviews({
+  reviews,
+  isExpanded,
+  onExpand,
+}: {
+  reviews: NonNullable<Place["reviews"]>
+  isExpanded: boolean
+  onExpand: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const displayReviews = reviews.filter((r) => r.text?.text).slice(0, 3)
+
+  if (displayReviews.length === 0) return null
+
+  return (
+    <div className="mb-4 rounded-xl bg-muted/40">
+      <button
+        data-vaul-no-drag
+        onClick={() => {
+          if (!isExpanded) {
+            onExpand()
+            setExpanded(true)
+            return
+          }
+          setExpanded((v) => !v)
+        }}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-foreground">reviews</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {displayReviews.length}
+          </span>
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          >
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </motion.div>
+        </div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.15, ease: "easeInOut" },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 px-4 pt-1 pb-3">
+              {displayReviews.map((review, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={cn(
+                            "h-2.5 w-2.5",
+                            i < review.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "fill-muted text-muted"
+                          )}
+                        />
+                      ))}
+                    </div>
+                    {review.authorAttribution?.displayName && (
+                      <span className="text-xs text-muted-foreground">
+                        {review.authorAttribution.displayName}
+                      </span>
+                    )}
+                    {review.relativePublishTimeDescription && (
+                      <>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs text-muted-foreground">
+                          {review.relativePublishTimeDescription}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <p className="line-clamp-3 text-sm leading-relaxed text-foreground">
+                    {review.text?.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.round((seconds % 3600) / 60)
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+  }
+  return `${minutes} min`
+}
+
 function formatPriceLevel(priceLevel: string): string {
   const map: Record<string, string> = {
     PRICE_LEVEL_FREE: "free",
@@ -291,7 +536,7 @@ function formatPlaceType(type?: string): string {
 
   const typeMap: Record<string, string> = {
     restaurant: "Restaurant",
-    cafe: "Café",
+    cafe: "Cafe",
     bar: "Bar",
     coffee_shop: "Coffee",
     bakery: "Bakery",

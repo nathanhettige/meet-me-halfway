@@ -10,6 +10,7 @@ import type {
   ConvergenceThresholds,
   Coordinates,
   IterationResult,
+  PlaceDriveTime,
   SearchResult,
   SnapResult,
 } from "./types"
@@ -316,6 +317,24 @@ export async function searchHandler(data: {
     longitude: d.location.longitude,
   }))
 
+  // Extract locality/suburb for each origin from address components
+  const origins = details.map((d) => {
+    const components = d.addressComponents ?? []
+    const locality =
+      components.find((c) => c.types.includes("locality"))?.longText ??
+      components.find((c) => c.types.includes("sublocality"))?.longText ??
+      components.find((c) => c.types.includes("administrative_area_level_2"))
+        ?.longText ??
+      "unknown"
+    return {
+      locality,
+      coordinates: {
+        latitude: d.location.latitude,
+        longitude: d.location.longitude,
+      },
+    }
+  })
+
   // Phase 1: Compute initial midpoint
   // For 2 people: geometric centroid (midpoint of the line)
   // For 3+ people: farthest-pair midpoint (minimizes max distance to the two
@@ -389,7 +408,9 @@ export async function searchHandler(data: {
   for (let i = 0; i < thresholds.maxIterations; i++) {
     // Find candidate venues near current midpoint
     // After oscillation: use more candidates and wider radius to escape barrier
-    const iterCandidateCount = oscillationDetected ? 8 : CANDIDATES_PER_ITERATION
+    const iterCandidateCount = oscillationDetected
+      ? 8
+      : CANDIDATES_PER_ITERATION
     const iterSearchRadius = oscillationDetected ? 35000 : undefined
     // For multi-person first iteration: also search around all pairwise midpoints
     const allPlaces = await fetchNearbyActivities(
@@ -455,9 +476,7 @@ export async function searchHandler(data: {
     // Phase 2: Batch candidate testing — test multiple venues in one call
     // On exploration iterations (multi-person first pass), test all candidates
     const maxCandidates =
-      isFirstIteration && isMultiPerson
-        ? places.length
-        : iterCandidateCount
+      isFirstIteration && isMultiPerson ? places.length : iterCandidateCount
     // Deduplicate: skip candidates already tested in previous iterations
     const candidates = places
       .filter((p) => !testedPlaceIds.has(p.id))
@@ -617,7 +636,11 @@ export async function searchHandler(data: {
     if (!isMultiPerson && iterations.length >= 2) {
       let flips = 0
       let lastMaxIdx = maxTimeIndex
-      for (let j = iterations.length - 1; j >= 0 && j >= iterations.length - 3; j--) {
+      for (
+        let j = iterations.length - 1;
+        j >= 0 && j >= iterations.length - 3;
+        j--
+      ) {
         const prevTimes = iterations[j].travelTimes ?? []
         if (prevTimes.length < 2) continue
         const prevMaxIdx = prevTimes.indexOf(Math.max(...prevTimes))
@@ -709,10 +732,40 @@ export async function searchHandler(data: {
   // Use the best midpoint found for final venue search
   const finalPlaces = await fetchNearbyActivities(bestMidpoint, 15)
 
+  // Compute per-person drive times to each final place
+  const driveTimes: Record<string, Array<PlaceDriveTime>> = {}
+  if (finalPlaces.length > 0) {
+    const destinationPlaceIds = finalPlaces.map((p) => p.id)
+    const routes = await fetchRouteMatrix(data.placeIds, destinationPlaceIds)
+
+    for (let d = 0; d < finalPlaces.length; d++) {
+      const placeId = finalPlaces[d].id
+      const times: Array<PlaceDriveTime> = []
+
+      for (let o = 0; o < data.placeIds.length; o++) {
+        const route = routes.find(
+          (r) => r.originIndex === o && r.destinationIndex === d
+        )
+        if (route?.duration && route.condition === "ROUTE_EXISTS") {
+          times.push({
+            durationSeconds: parseInt(route.duration.replace("s", "")),
+            distanceMeters: route.distanceMeters ?? 0,
+          })
+        } else {
+          times.push({ durationSeconds: 0, distanceMeters: 0 })
+        }
+      }
+
+      driveTimes[placeId] = times
+    }
+  }
+
   return {
     coordinates,
+    origins,
     midpoint: bestMidpoint,
     places: finalPlaces,
+    driveTimes,
     iterations,
     performance: {
       foundOnIteration: iterations[bestIterationIndex]?.iteration ?? 1,
