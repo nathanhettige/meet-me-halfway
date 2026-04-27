@@ -30,6 +30,8 @@ type AddressEntry = {
 
 // Module-level store so form state survives route navigations
 let persistedEntries: Array<AddressEntry> | null = null
+let persistedLocationBias: Coordinates | null = null
+let persistedBiasOwnerIndex: number | null = null
 
 /** Returns true if the user has previously filled out the form */
 export function hasPersistedFormData(): boolean {
@@ -44,8 +46,21 @@ export function LandingForm({
   returning: boolean
 }) {
   const navigate = useNavigate()
-  const [locationBias, setLocationBias] = useState<Coordinates | null>(null)
-  const [biasOwnerIndex, setBiasOwnerIndex] = useState<number | null>(null)
+  const [locationBias, _setLocationBias] = useState<Coordinates | null>(
+    persistedLocationBias
+  )
+  const [biasOwnerIndex, _setBiasOwnerIndex] = useState<number | null>(
+    persistedBiasOwnerIndex
+  )
+
+  const setLocationBias = (value: Coordinates | null) => {
+    persistedLocationBias = value
+    _setLocationBias(value)
+  }
+  const setBiasOwnerIndex = (value: number | null) => {
+    persistedBiasOwnerIndex = value
+    _setBiasOwnerIndex(value)
+  }
 
   const defaultAddresses: Array<AddressEntry> = persistedEntries ?? [
     { placeId: "", label: "" },
