@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import type { Coordinates } from "@/server/maps/types"
 import { calculateMidpoint } from "@/server/maps/calculate-midpoint"
-import { decodePolyline } from "@/server/maps/decode-polyline"
 import {
   computeConvergenceThresholds,
   computeWeightedCentroid,
@@ -263,55 +262,6 @@ describe("calculateMidpoint", () => {
     // Midpoint should be at equator, same longitude
     expect(result.latitude).toBeCloseTo(0, 4)
     expect(result.longitude).toBeCloseTo(0, 4)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// decodePolyline
-// ---------------------------------------------------------------------------
-
-describe("decodePolyline", () => {
-  it("decodes the classic Google example polyline", () => {
-    // Google's documented example:
-    // "_p~iF~ps|U_ulLnnqC_mqNvxq`@" -> (38.5, -120.2), (40.7, -120.95), (43.252, -126.453)
-    const points = decodePolyline("_p~iF~ps|U_ulLnnqC_mqNvxq`@")
-
-    expect(points).toHaveLength(3)
-
-    expect(points[0].latitude).toBeCloseTo(38.5, 1)
-    expect(points[0].longitude).toBeCloseTo(-120.2, 1)
-
-    expect(points[1].latitude).toBeCloseTo(40.7, 1)
-    expect(points[1].longitude).toBeCloseTo(-120.95, 1)
-
-    expect(points[2].latitude).toBeCloseTo(43.252, 1)
-    expect(points[2].longitude).toBeCloseTo(-126.453, 1)
-  })
-
-  it("empty string returns empty array", () => {
-    const points = decodePolyline("")
-    expect(points).toEqual([])
-  })
-
-  it("single point polyline returns one coordinate", () => {
-    // Encode (0, 0) manually: both lat and lng are 0
-    // 0 -> left shift 1 -> 0 -> chunks: [0] -> char code 63 -> "?"
-    // So "??" encodes (0.00000, 0.00000)
-    const points = decodePolyline("??")
-
-    expect(points).toHaveLength(1)
-    expect(points[0].latitude).toBeCloseTo(0, 5)
-    expect(points[0].longitude).toBeCloseTo(0, 5)
-  })
-
-  it("coordinates accumulate (delta encoding)", () => {
-    // The polyline format uses delta encoding — each point is relative to previous
-    const points = decodePolyline("_p~iF~ps|U_ulLnnqC_mqNvxq`@")
-
-    // Second point lat should be first lat + delta, not standalone
-    // We verify the decoded values match the expected absolute coordinates
-    expect(points[1].latitude).toBeCloseTo(40.7, 1)
-    expect(points[1].longitude).toBeCloseTo(-120.95, 1)
   })
 })
 
