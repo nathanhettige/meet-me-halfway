@@ -258,6 +258,7 @@ function ResultsContent({
             >
               <PlaceCard
                 place={place}
+                driveTimes={data.driveTimes[place.id]}
                 onSelect={() => setSelectedPlace(place)}
               />
             </motion.div>

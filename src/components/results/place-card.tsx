@@ -1,19 +1,23 @@
-import { Star } from "lucide-react"
-import type { Place } from "@/server/maps/types"
+import { Car, Star } from "lucide-react"
+import type { Place, PlaceDriveTime } from "@/server/maps/types"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePlacePhoto } from "@/hooks/use-maps"
 
 type PlaceCardProps = {
   place: Place
+  driveTimes?: Array<PlaceDriveTime>
   onSelect: () => void
 }
 
-export function PlaceCard({ place, onSelect }: PlaceCardProps) {
+export function PlaceCard({ place, driveTimes, onSelect }: PlaceCardProps) {
   const locality = place.addressComponents?.find((c) =>
     c.types?.includes("locality")
   )?.longText
   const category = formatPlaceType(place.types[0])
   const rating = place.rating || 0
+
+  const driveDiff = computeDriveDiff(driveTimes)
+  const driveDiffLabel = driveDiff != null ? formatDriveDiff(driveDiff) : undefined
 
   const firstPhoto = place.photos?.[0]
   const photoQuery = usePlacePhoto(firstPhoto)
@@ -67,10 +71,39 @@ export function PlaceCard({ place, onSelect }: PlaceCardProps) {
               </span>
             </>
           )}
+          {driveDiffLabel && (
+            <>
+              <span>·</span>
+              <span className="flex-shrink-0 inline-flex items-center gap-0.5">
+                <Car className="size-3" />
+                ±{driveDiffLabel}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
+}
+
+function computeDriveDiff(
+  driveTimes?: Array<PlaceDriveTime>,
+): number | undefined {
+  if (!driveTimes || driveTimes.length < 2) return undefined
+  const valid = driveTimes.filter((t) => t.durationSeconds > 0)
+  if (valid.length < 2) return undefined
+  const max = Math.max(...valid.map((t) => t.durationSeconds))
+  const min = Math.min(...valid.map((t) => t.durationSeconds))
+  return max - min
+}
+
+function formatDriveDiff(seconds: number): string | undefined {
+  const minutes = Math.round(seconds / 60)
+  if (minutes === 0) return undefined
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remaining = minutes % 60
+  return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`
 }
 
 function formatPriceLevel(priceLevel: string): string {
