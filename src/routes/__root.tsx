@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Suspense, lazy, useState } from "react"
+import { Analytics } from "@vercel/analytics/react"
 
 import appCss from "../styles.css?url"
 
@@ -105,6 +106,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             ]}
           />
         </Suspense>
+        <Analytics />
         <Scripts />
       </body>
     </html>
