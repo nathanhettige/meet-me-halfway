@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { PlacePhoto, SearchResult } from "@/server/maps/types"
+import type { Coordinates, PlacePhoto, SearchResult } from "@/server/maps/types"
 import { autocomplete } from "@/server/maps/autocomplete"
 import { search } from "@/server/maps/search"
 import { fetchPlacePhoto } from "@/server/maps/fetch-place-photo"
@@ -16,13 +16,32 @@ function useDebouncedValue(value: string, delay = 300) {
   return debounced
 }
 
-export function useAutocomplete(input: string) {
+type AutocompleteOptions = {
+  sessionToken?: string
+  locationBias?: Coordinates
+}
+
+export function useAutocomplete(input: string, options?: AutocompleteOptions) {
   const debouncedInput = useDebouncedValue(input)
+  const { sessionToken, locationBias } = options ?? {}
 
   const query = useQuery({
     enabled: debouncedInput.length > 0,
-    queryKey: ["autocomplete", debouncedInput],
-    queryFn: () => autocomplete({ data: { input: debouncedInput } }),
+    queryKey: [
+      "autocomplete",
+      debouncedInput,
+      sessionToken,
+      locationBias?.latitude,
+      locationBias?.longitude,
+    ],
+    queryFn: () =>
+      autocomplete({
+        data: {
+          input: debouncedInput,
+          sessionToken,
+          locationBias,
+        },
+      }),
   })
 
   return {

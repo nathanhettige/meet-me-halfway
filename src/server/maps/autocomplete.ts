@@ -2,13 +2,37 @@ import { createServerFn } from "@tanstack/react-start"
 
 export const autocomplete = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => {
-    const data = input as { input: string }
+    const data = input as {
+      input: string
+      sessionToken?: string
+      locationBias?: { latitude: number; longitude: number }
+    }
     if (!data.input || typeof data.input !== "string") {
       throw new Error("input is required")
     }
     return data
   })
   .handler(async ({ data }) => {
+    const body: Record<string, unknown> = {
+      input: data.input,
+    }
+
+    if (data.sessionToken) {
+      body.sessionToken = data.sessionToken
+    }
+
+    if (data.locationBias) {
+      body.locationBias = {
+        circle: {
+          center: {
+            latitude: data.locationBias.latitude,
+            longitude: data.locationBias.longitude,
+          },
+          radius: 50000.0,
+        },
+      }
+    }
+
     const response = await fetch(
       "https://places.googleapis.com/v1/places:autocomplete",
       {
@@ -19,9 +43,7 @@ export const autocomplete = createServerFn({ method: "GET" })
           "X-Goog-FieldMask":
             "suggestions.placePrediction.placeId,suggestions.placePrediction.text.text",
         },
-        body: JSON.stringify({
-          input: data.input,
-        }),
+        body: JSON.stringify(body),
       }
     )
 

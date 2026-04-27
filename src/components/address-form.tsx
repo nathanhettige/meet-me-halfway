@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { useNavigate } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import * as z from "zod"
+import type { Coordinates } from "@/server/maps/types"
 import { AutoComplete } from "@/components/autocomplete"
 import { Button } from "@/components/ui/button"
 import { CardContent, CardFooter } from "@/components/ui/card"
@@ -20,6 +22,8 @@ const formSchema = z.object({
 
 export function AddressForm() {
   const navigate = useNavigate()
+  const [locationBias, setLocationBias] = useState<Coordinates | null>(null)
+  const [biasOwnerIndex, setBiasOwnerIndex] = useState<number | null>(null)
 
   const form = useForm({
     defaultValues: {
@@ -59,14 +63,39 @@ export function AddressForm() {
                         <AutoComplete
                           placeholder="enter an address"
                           defaultValue={entry.label}
+                          locationBias={locationBias ?? undefined}
                           setPlaceId={(placeId, label) => {
                             subField.handleChange(placeId)
                             field.replaceValue(index, { placeId, label })
+                            if (!placeId && biasOwnerIndex === index) {
+                              setLocationBias(null)
+                              setBiasOwnerIndex(null)
+                            }
+                          }}
+                          onCoordinatesResolved={(coords) => {
+                            if (
+                              biasOwnerIndex === null ||
+                              biasOwnerIndex === index
+                            ) {
+                              setLocationBias(coords)
+                              setBiasOwnerIndex(index)
+                            }
                           }}
                           onBlur={subField.handleBlur}
                           onDelete={
                             field.state.value.length > 2
-                              ? () => field.removeValue(index)
+                              ? () => {
+                                  field.removeValue(index)
+                                  if (biasOwnerIndex === index) {
+                                    setLocationBias(null)
+                                    setBiasOwnerIndex(null)
+                                  } else if (
+                                    biasOwnerIndex !== null &&
+                                    biasOwnerIndex > index
+                                  ) {
+                                    setBiasOwnerIndex(biasOwnerIndex - 1)
+                                  }
+                                }
                               : undefined
                           }
                         />

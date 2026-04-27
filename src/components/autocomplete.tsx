@@ -1,10 +1,12 @@
 import { useRef, useState } from "react"
 import { Autocomplete } from "@base-ui/react/autocomplete"
 import { MapPin, Trash2 } from "lucide-react"
+import type { Coordinates } from "@/server/maps/types"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useAutocomplete } from "@/hooks/use-maps"
+import { getPlaceCoordinates } from "@/server/maps/get-place-coordinates"
 
 type Option = {
   value: string
@@ -15,7 +17,9 @@ type AutoCompleteProps = {
   disabled?: boolean
   placeholder?: string
   defaultValue?: string
+  locationBias?: Coordinates
   setPlaceId?: (placeId: string, label: string) => void
+  onCoordinatesResolved?: (coords: Coordinates) => void
   onDelete?: () => void
   onBlur?: () => void
 }
@@ -24,7 +28,9 @@ export function AutoComplete({
   placeholder,
   disabled,
   defaultValue,
+  locationBias,
   setPlaceId,
+  onCoordinatesResolved,
   onDelete,
   onBlur,
 }: AutoCompleteProps) {
@@ -34,7 +40,14 @@ export function AutoComplete({
   // when the user edits the text after picking an option (invalidating it).
   const selectedLabelRef = useRef(defaultValue ?? "")
 
-  const { data, isDebouncing, isLoading } = useAutocomplete(searchValue)
+  // Session token groups autocomplete requests with the subsequent place
+  // details call into a single billing session.
+  const sessionTokenRef = useRef(crypto.randomUUID())
+
+  const { data, isDebouncing, isLoading } = useAutocomplete(searchValue, {
+    sessionToken: sessionTokenRef.current,
+    locationBias,
+  })
 
   const options = isDebouncing ? [] : (data ?? [])
 
@@ -51,6 +64,27 @@ export function AutoComplete({
     if (next !== selectedLabelRef.current) {
       selectedLabelRef.current = ""
       setPlaceId?.("", "")
+    }
+  }
+
+  const handleSelect = async (option: Option) => {
+    selectedLabelRef.current = option.label
+    setPlaceId?.(option.value, option.label)
+
+    // Close the autocomplete session by fetching place details with the
+    // same session token, then regenerate the token for the next session.
+    const token = sessionTokenRef.current
+    sessionTokenRef.current = crypto.randomUUID()
+
+    if (onCoordinatesResolved) {
+      try {
+        const coords = await getPlaceCoordinates({
+          data: { placeId: option.value, sessionToken: token },
+        })
+        onCoordinatesResolved(coords)
+      } catch {
+        // Coordinates are a nice-to-have for biasing; don't block the user.
+      }
     }
   }
 
@@ -108,10 +142,7 @@ export function AutoComplete({
                         "relative flex cursor-default items-center overflow-hidden rounded-sm px-2 py-3 text-base text-slate-900 outline-none select-none",
                         "data-highlighted:bg-[rgba(44,173,253,0.15)]"
                       )}
-                      onClick={() => {
-                        selectedLabelRef.current = option.label
-                        setPlaceId?.(option.value, option.label)
-                      }}
+                      onClick={() => handleSelect(option)}
                     >
                       <span className="truncate">{option.label}</span>
                     </Autocomplete.Item>

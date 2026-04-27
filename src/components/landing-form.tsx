@@ -1,8 +1,10 @@
+import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { useNavigate } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "framer-motion"
 import { Plus } from "lucide-react"
 import * as z from "zod"
+import type { Coordinates } from "@/server/maps/types"
 import { AutoComplete } from "@/components/autocomplete"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -42,6 +44,8 @@ export function LandingForm({
   returning: boolean
 }) {
   const navigate = useNavigate()
+  const [locationBias, setLocationBias] = useState<Coordinates | null>(null)
+  const [biasOwnerIndex, setBiasOwnerIndex] = useState<number | null>(null)
 
   const defaultAddresses: Array<AddressEntry> = persistedEntries ?? [
     { placeId: "", label: "" },
@@ -141,17 +145,37 @@ export function LandingForm({
                                               : `${index + 1}th address`
                                       }
                                       defaultValue={entry.label}
+                                      locationBias={locationBias ?? undefined}
                                       setPlaceId={(placeId, label) => {
                                         subField.handleChange(placeId)
                                         field.replaceValue(index, {
                                           placeId,
                                           label,
                                         })
+                                        // If this input owned the bias and was cleared, release ownership
+                                        if (!placeId && biasOwnerIndex === index) {
+                                          setLocationBias(null)
+                                          setBiasOwnerIndex(null)
+                                        }
+                                      }}
+                                      onCoordinatesResolved={(coords) => {
+                                        if (biasOwnerIndex === null || biasOwnerIndex === index) {
+                                          setLocationBias(coords)
+                                          setBiasOwnerIndex(index)
+                                        }
                                       }}
                                       onBlur={subField.handleBlur}
                                       onDelete={
                                         field.state.value.length > 2
-                                          ? () => field.removeValue(index)
+                                          ? () => {
+                                              field.removeValue(index)
+                                              if (biasOwnerIndex === index) {
+                                                setLocationBias(null)
+                                                setBiasOwnerIndex(null)
+                                              } else if (biasOwnerIndex !== null && biasOwnerIndex > index) {
+                                                setBiasOwnerIndex(biasOwnerIndex - 1)
+                                              }
+                                            }
                                           : undefined
                                       }
                                     />
