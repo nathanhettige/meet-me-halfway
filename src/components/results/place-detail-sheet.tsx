@@ -136,8 +136,16 @@ export function PlaceDetailSheet({
             )}
           </div>
 
+        </DrawerHeader>
+
+        <div
+          className={cn(
+            "min-h-0 flex-1",
+            isExpanded ? "overflow-y-auto" : "overflow-hidden"
+          )}
+        >
           {/* Action buttons */}
-          <div className="mt-2 flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 pb-3">
             <button
               onClick={handleDirections}
               className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
@@ -155,35 +163,28 @@ export function PlaceDetailSheet({
               </button>
             )}
           </div>
-        </DrawerHeader>
 
-        {/* Horizontal scrollable photo mosaic */}
-        {photoCount > 0 && (
-          <div className="px-4 pb-2">
-            {loadedPhotos.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto">
-                {loadedPhotos.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt={`${place.displayName.text} photo ${i + 1}`}
-                    className="h-36 w-52 shrink-0 rounded-xl object-cover"
-                  />
-                ))}
-              </div>
-            ) : photosQuery.isLoading ? (
-              <Skeleton className="h-36 rounded-xl" />
-            ) : null}
-          </div>
-        )}
-
-        <div
-          className={cn(
-            "min-h-0 flex-1 px-4",
-            isExpanded ? "overflow-y-auto" : "overflow-hidden"
+          {/* Horizontal scrollable photo mosaic */}
+          {photoCount > 0 && (
+            <div className="px-4 pb-4">
+              {loadedPhotos.length > 0 ? (
+                <div className="flex gap-2 overflow-x-auto">
+                  {loadedPhotos.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`${place.displayName.text} photo ${i + 1}`}
+                      className="h-36 w-52 shrink-0 rounded-xl object-cover"
+                    />
+                  ))}
+                </div>
+              ) : photosQuery.isLoading ? (
+                <Skeleton className="h-36 rounded-xl" />
+              ) : null}
+            </div>
           )}
-        >
           {/* Editorial summary */}
+          <div className="px-4">
           {place.editorialSummary?.text && (
             <div className="mb-4 rounded-xl bg-muted/40 p-4">
               <p className="text-sm leading-relaxed text-foreground">
@@ -227,6 +228,7 @@ export function PlaceDetailSheet({
               onExpand={() => setSnap(SNAP_POINTS[1])}
             />
           )}
+          </div>
         </div>
       </DrawerContent>
     </Drawer>
@@ -443,9 +445,6 @@ function Reviews({
           <span className="text-sm font-semibold text-foreground">reviews</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            {displayReviews.length}
-          </span>
           <motion.div
             animate={{ rotate: expanded ? 180 : 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
