@@ -54,6 +54,25 @@ function HomePage() {
       <CloudBackground />
       <BalloonText started={started} onStart={handleStart} />
       <LandingForm visible={started} returning={returning} />
+      <footer className="absolute bottom-3 left-0 right-0 z-10 text-center text-xs text-white/60">
+        <span>built by nathan hettige</span>
+        <span className="mx-1.5">·</span>
+        <a
+          href="https://github.com/nathanhettige"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-2 transition-colors hover:text-white/90"
+        >
+          github
+        </a>
+        <span className="mx-1.5">·</span>
+        <a
+          href="mailto:nathan@hirustudios.com.au"
+          className="underline underline-offset-2 transition-colors hover:text-white/90"
+        >
+          contact
+        </a>
+      </footer>
     </div>
   )
 }
