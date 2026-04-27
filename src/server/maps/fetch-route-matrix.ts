@@ -33,7 +33,7 @@ export async function fetchRouteMatrix(
           waypoint: { placeId: stripPlacesPrefix(placeId) },
         })),
         travelMode: "DRIVE",
-        routingPreference: "TRAFFIC_UNAWARE",
+        routingPreference: "TRAFFIC_AWARE",
       }),
     }
   )
