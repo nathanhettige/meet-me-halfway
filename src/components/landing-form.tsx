@@ -8,9 +8,10 @@ import type { Coordinates } from "@/server/maps/types"
 import { AutoComplete } from "@/components/autocomplete"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Field, FieldError } from "@/components/ui/field"
 
-const MAX_ENTRIES = 5
+const MAX_ENTRIES = 4
 
 const formSchema = z.object({
   addresses: z
@@ -52,6 +53,7 @@ export function LandingForm({
   const [biasOwnerIndex, _setBiasOwnerIndex] = useState<number | null>(
     persistedBiasOwnerIndex
   )
+  const [limitOpen, setLimitOpen] = useState(false)
 
   const setLocationBias = (value: Coordinates | null) => {
     persistedLocationBias = value
@@ -85,6 +87,7 @@ export function LandingForm({
   const staggerBase = returning ? 0 : 0.75
 
   return (
+    <>
     <AnimatePresence>
       {visible && (
         <motion.div
@@ -240,13 +243,16 @@ export function LandingForm({
                           </Button>
                           <Button
                             type="button"
-                            onClick={() =>
-                              field.pushValue({ placeId: "", label: "" })
-                            }
+                            onClick={() => {
+                              if (field.state.value.length >= MAX_ENTRIES) {
+                                setLimitOpen(true)
+                              } else {
+                                field.pushValue({ placeId: "", label: "" })
+                              }
+                            }}
                             variant="ghost"
                             size="sm"
                             className="font-semibold text-white hover:bg-white/20 hover:text-white"
-                            disabled={field.state.value.length >= MAX_ENTRIES}
                           >
                             <Plus className="h-4 w-4" />
                             add friend
@@ -262,5 +268,14 @@ export function LandingForm({
         </motion.div>
       )}
     </AnimatePresence>
+    <Dialog open={limitOpen} onOpenChange={setLimitOpen}>
+      <DialogContent showCloseButton={false} className="text-center">
+        <p>
+          whoa there! 4 people is the max — any more and finding the middle
+          gets too expenny 🤑
+        </p>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
