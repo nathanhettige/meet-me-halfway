@@ -34,23 +34,25 @@ src/
   routes/             File-based routing (TanStack Router)
     __root.tsx         Root layout (QueryClientProvider, meta)
     index.tsx          Home / landing page
-    search.tsx         Results page (sidebar + map)
+    results.tsx        Results page (places + map)
   components/
     ui/                shadcn/ui generated components (do not hand-edit)
     balloon-text.tsx   3D balloon text (React Three Fiber)
     landing-form.tsx   Landing page form (Framer Motion)
     autocomplete.tsx   Address autocomplete (@base-ui/react)
     clouds.tsx         SVG cloud animations
-    marker-map.tsx     Google Maps with markers
-    address-form.tsx   Address form (results page)
+    results/           Results page components (place-card, mini-map, etc.)
   hooks/
     use-maps.ts        useAutocomplete, useSearch (React Query)
   server/maps/
     search.ts          Main midpoint optimization loop
     autocomplete.ts    Google Places Autocomplete
     calculate-midpoint.ts  Spherical midpoint (Cartesian/atan2)
-    fetch-*.ts         Google API wrappers (routes, places, etc.)
+    snap-midpoint.ts   Snap midpoint to nearest road/city
+    fetch-*.ts         Google API wrappers (routes, places, photos, etc.)
+    get-place-coordinates.ts  Geocode a place to lat/lng
     types.ts           Shared types (Coordinates, Place, etc.)
+    __tests__/         Unit tests for server logic
   lib/utils.ts         cn() utility (clsx + tailwind-merge)
   styles.css           Tailwind v4 config + theme + custom animations
   routeTree.gen.ts     AUTO-GENERATED — do not edit
