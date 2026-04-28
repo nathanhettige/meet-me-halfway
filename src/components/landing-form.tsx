@@ -88,7 +88,7 @@ export function LandingForm({
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-x-0 top-[35vh] bottom-0 z-20 flex items-start justify-center overflow-y-auto px-8 md:top-[42vh] md:px-6"
+          className="absolute inset-x-0 top-[30vh] bottom-0 z-20 flex items-start justify-center overflow-y-auto px-8 pb-16 md:top-[36vh] md:px-6"
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
