@@ -26,6 +26,7 @@
     "@tanstack/react-start": "^1.166.15",
     "@tanstack/router-plugin": "^1.166.13",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/edge": "^1.2.2",
     "@vis.gl/react-google-maps": "^1.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
