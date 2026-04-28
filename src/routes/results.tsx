@@ -2,8 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { APIProvider } from "@vis.gl/react-google-maps"
 import { AnimatePresence, motion } from "framer-motion"
-import { MapPin } from "lucide-react"
+import { MapPin, SearchX } from "lucide-react"
 import type { Place } from "@/server/maps/types"
+import { Button } from "@/components/ui/button"
 import { useSearch } from "@/hooks/use-maps"
 import { CloudBackground } from "@/components/clouds"
 import { ResultsHeader } from "@/components/results/results-header"
@@ -226,44 +227,75 @@ function ResultsContent({
       </motion.div>
 
       <main className="px-4 pt-5 pb-8">
-        {/* Section header — fades up */}
-        <motion.div
-          className="mb-4 flex items-end justify-between"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-        >
-          <div>
-            <h2 className="text-xl font-bold text-foreground">
-              places to meet
-            </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {filteredPlaces.length} spots found nearby
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Place cards — staggered entrance */}
-        <div className="grid gap-6">
-          {filteredPlaces.map((place, index) => (
+        {filteredPlaces.length === 0 ? (
+          <motion.div
+            className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+          >
+            <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+              <SearchX className="size-7 text-muted-foreground" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">
+                no spots found
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                we couldn&apos;t find any places to meet in this area. try
+                different addresses or locations that are closer together.
+              </p>
+            </div>
+            <Button variant="outline" className="mt-2" onClick={onBack}>
+              try different addresses
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            {/* Section header — fades up */}
             <motion.div
-              key={place.id}
-              initial={{ opacity: 0, y: 20 }}
+              className="mb-4 flex items-end justify-between"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 duration: 0.4,
                 ease: [0.22, 1, 0.36, 1],
-                delay: 0.3 + index * 0.07,
+                delay: 0.25,
               }}
             >
-              <PlaceCard
-                place={place}
-                driveTimes={data.driveTimes[place.id]}
-                onSelect={() => setSelectedPlace(place)}
-              />
+              <div>
+                <h2 className="text-xl font-bold text-foreground">
+                  places to meet
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {filteredPlaces.length} spots found nearby
+                </p>
+              </div>
             </motion.div>
-          ))}
-        </div>
+
+            {/* Place cards — staggered entrance */}
+            <div className="grid gap-6">
+              {filteredPlaces.map((place, index) => (
+                <motion.div
+                  key={place.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: 0.3 + index * 0.07,
+                  }}
+                >
+                  <PlaceCard
+                    place={place}
+                    driveTimes={data.driveTimes[place.id]}
+                    onSelect={() => setSelectedPlace(place)}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Bottom safe area padding */}
         <div className="h-6" />
