@@ -449,6 +449,8 @@ export async function searchHandler(data: {
     if (places.length === 0) {
       console.log(`Iteration ${i + 1}: No places found near midpoint`)
 
+      const previousMidpoint = { ...currentMidpoint }
+
       const cities = await fetchNearbyCities(currentMidpoint)
       if (cities.length > 0) {
         console.log(
@@ -471,6 +473,14 @@ export async function searchHandler(data: {
         candidatesTested: 0,
         travelTimes: [],
       })
+
+      // If the midpoint didn't move, stop — we'd just loop on the same empty area
+      if (coordDistance(currentMidpoint, previousMidpoint) < 0.001) {
+        console.log(
+          `Iteration ${i + 1}: No places found and midpoint unchanged, stopping search`
+        )
+        break
+      }
       continue
     }
 
