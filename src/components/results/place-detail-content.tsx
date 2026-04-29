@@ -1,17 +1,7 @@
 import { useState } from "react"
-import type { Coordinates, Place, PlaceDriveTime } from "@/server/maps/types"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
-import { Star } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { usePlacePhotos } from "@/hooks/use-maps"
 import { AnimatePresence, motion } from "framer-motion"
 import {
+  ArrowLeft,
   Car,
   ChevronDown,
   Clock,
@@ -19,33 +9,35 @@ import {
   MapPin,
   MessageSquareText,
   Navigation,
+  Star,
 } from "lucide-react"
+import type { Coordinates, Place, PlaceDriveTime } from "@/server/maps/types"
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
+import { usePlacePhotos } from "@/hooks/use-maps"
 
 type Origin = {
   locality: string
   coordinates: Coordinates
 }
 
-type PlaceDetailSheetProps = {
-  place: Place | null
+type PlaceDetailContentProps = {
+  place: Place
   driveTimes?: Array<PlaceDriveTime>
   origins?: Array<Origin>
-  onClose: () => void
+  onBack?: () => void
+  /** Whether collapsible sections start expanded (desktop) */
+  defaultExpanded?: boolean
 }
 
-const SNAP_POINTS = [0.67, 0.95] as const
-type SnapPoint = (typeof SNAP_POINTS)[number]
-
-export function PlaceDetailSheet({
+export function PlaceDetailContent({
   place,
   driveTimes,
   origins,
-  onClose,
-}: PlaceDetailSheetProps) {
-  const photosQuery = usePlacePhotos(place?.photos, 5)
-  const [snap, setSnap] = useState<SnapPoint | null>(SNAP_POINTS[0])
-
-  if (!place) return null
+  onBack,
+  defaultExpanded = false,
+}: PlaceDetailContentProps) {
+  const photosQuery = usePlacePhotos(place.photos, 5)
 
   const rating = place.rating || 0
   const fullStars = Math.floor(rating)
@@ -64,188 +56,177 @@ export function PlaceDetailSheet({
   const photoCount = place.photos?.length ? Math.min(place.photos.length, 5) : 0
   const loadedPhotos = photosQuery.urls.filter(Boolean) as Array<string>
 
-  const isExpanded = snap === SNAP_POINTS[1]
-
   return (
-    <Drawer
-      open={!!place}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose()
-          setSnap(SNAP_POINTS[0])
-        }
-      }}
-      snapPoints={[...SNAP_POINTS]}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={(s) => setSnap(s as SnapPoint | null)}
-      fadeFromIndex={0}
-    >
-      <DrawerContent>
-        <DrawerHeader className="pt-4 pb-3">
-          <DrawerTitle className="text-left text-2xl font-bold text-balance">
-            {place.displayName.text}
-          </DrawerTitle>
+    <div className="flex h-full flex-col">
+      {/* Back button (desktop panel mode) */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 px-4 pt-4 pb-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          back to results
+        </button>
+      )}
 
-          {/* Badge, rating, price level */}
-          <div className="flex items-center gap-1">
-            {place.types
-              .filter(
-                (t) => !["establishment", "point_of_interest"].includes(t)
-              )
-              .slice(0, 1)
-              .map((type) => (
-                <span
-                  key={type}
-                  className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[12px] font-semibold tracking-wide text-sky-blue uppercase"
-                >
-                  {formatPlaceType(type)}
-                </span>
-              ))}
-            <span className="text-[12px] text-muted-foreground">&middot;</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[12px] font-semibold text-foreground">
-                {rating ? rating.toFixed(1) : "N/A"}
+      {/* Header */}
+      <div className="px-4 pt-3 pb-3">
+        <h2 className="text-2xl font-bold text-balance text-foreground">
+          {place.displayName.text}
+        </h2>
+
+        {/* Badge, rating, price level */}
+        <div className="mt-1 flex items-center gap-1">
+          {place.types
+            .filter((t) => !["establishment", "point_of_interest"].includes(t))
+            .slice(0, 1)
+            .map((type) => (
+              <span
+                key={type}
+                className="rounded-full bg-sky-blue/10 px-2.5 py-0.5 text-[12px] font-semibold tracking-wide text-sky-blue uppercase"
+              >
+                {formatPlaceType(type)}
               </span>
-              <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star
+            ))}
+          <span className="text-[12px] text-muted-foreground">&middot;</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[12px] font-semibold text-foreground">
+              {rating ? rating.toFixed(1) : "N/A"}
+            </span>
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3 w-3 ${
+                    i < fullStars
+                      ? "fill-amber-400 text-amber-400"
+                      : i === fullStars && hasHalfStar
+                        ? "fill-amber-400/50 text-amber-400"
+                        : "fill-muted text-muted"
+                  }`}
+                />
+              ))}
+            </div>
+            {place.userRatingCount && (
+              <span className="text-[12px] text-muted-foreground">
+                ({place.userRatingCount.toLocaleString()})
+              </span>
+            )}
+          </div>
+          {place.priceLevel && (
+            <>
+              <span className="text-[12px] text-muted-foreground">
+                &middot;
+              </span>
+              <span className="text-[12px] font-semibold text-muted-foreground">
+                {formatPriceLevel(place.priceLevel)}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 px-4 pb-3">
+          <button
+            onClick={handleDirections}
+            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
+          >
+            <Navigation className="h-3 w-3" />
+            directions
+          </button>
+          {place.websiteUri && (
+            <button
+              onClick={handleWebsite}
+              className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              <Globe className="h-3 w-3" />
+              website
+            </button>
+          )}
+        </div>
+
+        {/* Horizontal scrollable photo mosaic */}
+        {photoCount > 0 && (
+          <div className="px-4 pb-4">
+            {loadedPhotos.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto">
+                {loadedPhotos.map((url, i) => (
+                  <img
                     key={i}
-                    className={`h-3 w-3 ${
-                      i < fullStars
-                        ? "fill-amber-400 text-amber-400"
-                        : i === fullStars && hasHalfStar
-                          ? "fill-amber-400/50 text-amber-400"
-                          : "fill-muted text-muted"
-                    }`}
+                    src={url}
+                    alt={`${place.displayName.text} photo ${i + 1}`}
+                    className="h-36 w-52 shrink-0 rounded-xl object-cover"
                   />
                 ))}
               </div>
-              {place.userRatingCount && (
-                <span className="text-[12px] text-muted-foreground">
-                  ({place.userRatingCount.toLocaleString()})
-                </span>
-              )}
-            </div>
-            {place.priceLevel && (
-              <>
-                <span className="text-[12px] text-muted-foreground">
-                  &middot;
-                </span>
-                <span className="text-[12px] font-semibold text-muted-foreground">
-                  {formatPriceLevel(place.priceLevel)}
-                </span>
-              </>
-            )}
+            ) : photosQuery.isLoading ? (
+              <Skeleton className="h-36 rounded-xl" />
+            ) : null}
           </div>
-        </DrawerHeader>
+        )}
 
-        <div
-          className={cn(
-            "min-h-0 flex-1",
-            isExpanded ? "overflow-y-auto" : "overflow-hidden"
-          )}
-        >
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 px-4 pb-3">
-            <button
-              onClick={handleDirections}
-              className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
-            >
-              <Navigation className="h-3 w-3" />
-              directions
-            </button>
-            {place.websiteUri && (
-              <button
-                onClick={handleWebsite}
-                className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-muted"
-              >
-                <Globe className="h-3 w-3" />
-                website
-              </button>
-            )}
-          </div>
-
-          {/* Horizontal scrollable photo mosaic */}
-          {photoCount > 0 && (
-            <div className="px-4 pb-4">
-              {loadedPhotos.length > 0 ? (
-                <div className="flex gap-2 overflow-x-auto">
-                  {loadedPhotos.map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt={`${place.displayName.text} photo ${i + 1}`}
-                      className="h-36 w-52 shrink-0 rounded-xl object-cover"
-                    />
-                  ))}
-                </div>
-              ) : photosQuery.isLoading ? (
-                <Skeleton className="h-36 rounded-xl" />
-              ) : null}
-            </div>
-          )}
-          {/* Editorial summary */}
-          <div className="px-4">
-            {place.editorialSummary?.text && (
-              <div className="mb-4 rounded-xl bg-muted/40 p-4">
-                <p className="text-sm leading-relaxed text-foreground">
-                  {place.editorialSummary.text}
-                </p>
-              </div>
-            )}
-
-            {/* Address card */}
+        {/* Editorial summary */}
+        <div className="px-4">
+          {place.editorialSummary?.text && (
             <div className="mb-4 rounded-xl bg-muted/40 p-4">
-              <p className="flex items-start gap-2 text-sm leading-snug text-foreground">
-                <MapPin className="mt-px h-4 w-4 shrink-0 text-muted-foreground" />
-                {place.formattedAddress}
+              <p className="text-sm leading-relaxed text-foreground">
+                {place.editorialSummary.text}
               </p>
             </div>
+          )}
 
-            {/* Opening hours */}
-            {place.currentOpeningHours && (
-              <OpeningHours
-                hours={place.currentOpeningHours}
-                isExpanded={isExpanded}
-                onExpand={() => setSnap(SNAP_POINTS[1])}
-              />
-            )}
-
-            {/* Drive times */}
-            {driveTimes && driveTimes.length > 0 && (
-              <DriveTimes
-                driveTimes={driveTimes}
-                origins={origins}
-                isExpanded={isExpanded}
-                onExpand={() => setSnap(SNAP_POINTS[1])}
-              />
-            )}
-
-            {/* Reviews */}
-            {place.reviews && place.reviews.length > 0 && (
-              <Reviews
-                reviews={place.reviews}
-                isExpanded={isExpanded}
-                onExpand={() => setSnap(SNAP_POINTS[1])}
-              />
-            )}
+          {/* Address card */}
+          <div className="mb-4 rounded-xl bg-muted/40 p-4">
+            <p className="flex items-start gap-2 text-sm leading-snug text-foreground">
+              <MapPin className="mt-px h-4 w-4 shrink-0 text-muted-foreground" />
+              {place.formattedAddress}
+            </p>
           </div>
+
+          {/* Opening hours */}
+          {place.currentOpeningHours && (
+            <OpeningHours
+              hours={place.currentOpeningHours}
+              defaultExpanded={defaultExpanded}
+            />
+          )}
+
+          {/* Drive times */}
+          {driveTimes && driveTimes.length > 0 && (
+            <DriveTimes
+              driveTimes={driveTimes}
+              origins={origins}
+              defaultExpanded={defaultExpanded}
+            />
+          )}
+
+          {/* Reviews */}
+          {place.reviews && place.reviews.length > 0 && (
+            <Reviews
+              reviews={place.reviews}
+              defaultExpanded={defaultExpanded}
+            />
+          )}
         </div>
-      </DrawerContent>
-    </Drawer>
+
+        {/* Bottom padding */}
+        <div className="h-6" />
+      </div>
+    </div>
   )
 }
 
 function OpeningHours({
   hours,
-  isExpanded,
-  onExpand,
+  defaultExpanded,
 }: {
   hours: NonNullable<Place["currentOpeningHours"]>
-  isExpanded: boolean
-  onExpand: () => void
+  defaultExpanded: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const { openNow, weekdayDescriptions } = hours
   const statusLabel =
     openNow === true
@@ -257,15 +238,7 @@ function OpeningHours({
   return (
     <div className="mb-4 rounded-xl bg-muted/40">
       <button
-        data-vaul-no-drag
-        onClick={() => {
-          if (!isExpanded) {
-            onExpand()
-            setExpanded(true)
-            return
-          }
-          setExpanded((v) => !v)
-        }}
+        onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2.5">
@@ -323,15 +296,13 @@ function OpeningHours({
 function DriveTimes({
   driveTimes,
   origins,
-  isExpanded,
-  onExpand,
+  defaultExpanded,
 }: {
   driveTimes: Array<PlaceDriveTime>
   origins?: Array<Origin>
-  isExpanded: boolean
-  onExpand: () => void
+  defaultExpanded: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(defaultExpanded)
 
   const validTimes = driveTimes.filter((dt) => dt.durationSeconds > 0)
   const avgSeconds =
@@ -345,15 +316,7 @@ function DriveTimes({
   return (
     <div className="mb-4 rounded-xl bg-muted/40">
       <button
-        data-vaul-no-drag
-        onClick={() => {
-          if (!isExpanded) {
-            onExpand()
-            setExpanded(true)
-            return
-          }
-          setExpanded((v) => !v)
-        }}
+        onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2.5">
@@ -415,14 +378,12 @@ function DriveTimes({
 
 function Reviews({
   reviews,
-  isExpanded,
-  onExpand,
+  defaultExpanded,
 }: {
   reviews: NonNullable<Place["reviews"]>
-  isExpanded: boolean
-  onExpand: () => void
+  defaultExpanded: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const displayReviews = reviews.filter((r) => r.text?.text).slice(0, 3)
 
   if (displayReviews.length === 0) return null
@@ -430,15 +391,7 @@ function Reviews({
   return (
     <div className="mb-4 rounded-xl bg-muted/40">
       <button
-        data-vaul-no-drag
-        onClick={() => {
-          if (!isExpanded) {
-            onExpand()
-            setExpanded(true)
-            return
-          }
-          setExpanded((v) => !v)
-        }}
+        onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2.5">

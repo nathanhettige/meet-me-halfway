@@ -48,7 +48,7 @@ export function LandingForm({
 }) {
   const navigate = useNavigate()
   const [locationBias, _setLocationBias] = useState<Coordinates | null>(
-    persistedLocationBias
+    persistedLocationBias ?? { latitude: -27.4698, longitude: 153.0251 }
   )
   const [biasOwnerIndex, _setBiasOwnerIndex] = useState<number | null>(
     persistedBiasOwnerIndex
