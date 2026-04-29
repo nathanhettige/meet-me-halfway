@@ -72,10 +72,10 @@ export function CategoryFilter({ selected, onApply }: CategoryFilterProps) {
                   type="button"
                   onClick={() => handleToggle(category.id)}
                   className={cn(
-                    "flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-all",
+                    "flex w-full items-center justify-center gap-2 rounded-full text-sm transition-all",
                     isSelected
-                      ? "border-sky-blue text-sky-blue"
-                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                      ? "border-2 border-sky-blue px-2.5 py-1 font-semibold text-sky-blue"
+                      : "border border-border bg-background px-3 py-1.5 font-medium text-muted-foreground hover:bg-accent"
                   )}
                 >
                   <Icon className="size-3.5" />
