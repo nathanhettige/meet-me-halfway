@@ -38,23 +38,30 @@ function ResultsPage() {
   const { placeIds: placeIdsParam, categories: categoriesParam } =
     Route.useSearch()
   const placeIds = placeIdsParam ? placeIdsParam.split(",") : []
-  const midpointRef = useRef<Coordinates | undefined>(undefined)
+  const cachedResultRef = useRef<
+    { midpoint: Coordinates; cityName: string } | undefined
+  >(undefined)
 
   // Pass cached midpoint when filtering (skip optimization loop)
   const categories = categoriesParam ? categoriesParam.split(",") : undefined
-  const midpointForQuery = categories ? midpointRef.current : undefined
+  const midpointForQuery = categories
+    ? cachedResultRef.current?.midpoint
+    : undefined
 
   const searchResult = useSearch(placeIds, categories, midpointForQuery)
   const navigate = useNavigate()
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
 
-  // Cache the midpoint from the first successful search
+  // Cache the midpoint and city name from the first successful search
   useEffect(() => {
-    if (searchResult.data?.midpoint && !midpointRef.current) {
-      midpointRef.current = searchResult.data.midpoint
+    if (searchResult.data?.midpoint && !cachedResultRef.current) {
+      cachedResultRef.current = {
+        midpoint: searchResult.data.midpoint,
+        cityName: searchResult.data.snap?.cityName || "Midpoint",
+      }
     }
-  }, [searchResult.data?.midpoint])
+  }, [searchResult.data?.midpoint, searchResult.data?.snap])
 
   // Derive selected categories from URL param (absent = no filter applied)
   const selectedCategories = new Set(
@@ -87,6 +94,7 @@ function ResultsPage() {
           <ResultsContent
             key="results"
             data={searchResult.data}
+            cachedCityName={cachedResultRef.current?.cityName}
             selectedPlace={selectedPlace}
             setSelectedPlace={setSelectedPlace}
             isMapExpanded={isMapExpanded}
@@ -205,6 +213,7 @@ function ResultsLoadingScreen() {
 /** Results content with staggered entrance animations */
 function ResultsContent({
   data,
+  cachedCityName,
   selectedPlace,
   setSelectedPlace,
   isMapExpanded,
@@ -214,6 +223,7 @@ function ResultsContent({
   onBack,
 }: {
   data: NonNullable<ReturnType<typeof useSearch>["data"]>
+  cachedCityName: string | undefined
   selectedPlace: Place | null
   setSelectedPlace: (place: Place | null) => void
   isMapExpanded: boolean
@@ -222,7 +232,7 @@ function ResultsContent({
   onApplyCategories: (categories: Set<string>) => void
   onBack: () => void
 }) {
-  const cityName = data.snap?.cityName || "Midpoint"
+  const cityName = data.snap?.cityName || cachedCityName || "Midpoint"
   const filteredPlaces = data.places.filter((place) => place.photos?.length)
 
   return (
