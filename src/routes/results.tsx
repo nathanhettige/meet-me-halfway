@@ -101,6 +101,14 @@ function ResultsPage() {
             setIsMapExpanded={setIsMapExpanded}
             selectedCategories={selectedCategories}
             onApplyCategories={handleApplyCategories}
+            hasFilters={!!categoriesParam}
+            onClearFilters={() =>
+              navigate({
+                to: "/results",
+                search: { placeIds: placeIdsParam },
+                replace: true,
+              })
+            }
             onBack={() => navigate({ to: "/" })}
           />
         )}
@@ -220,6 +228,8 @@ function ResultsContent({
   setIsMapExpanded,
   selectedCategories,
   onApplyCategories,
+  hasFilters,
+  onClearFilters,
   onBack,
 }: {
   data: NonNullable<ReturnType<typeof useSearch>["data"]>
@@ -230,6 +240,8 @@ function ResultsContent({
   setIsMapExpanded: (expanded: boolean) => void
   selectedCategories: Set<string>
   onApplyCategories: (categories: Set<string>) => void
+  hasFilters: boolean
+  onClearFilters: () => void
   onBack: () => void
 }) {
   const cityName = data.snap?.cityName || cachedCityName || "Midpoint"
@@ -287,16 +299,31 @@ function ResultsContent({
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">
-                no spots found
+                {hasFilters ? "no places match your filters" : "no places found"}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                we couldn&apos;t find any places to meet in this area. try
-                different addresses or locations that are closer together.
+                {hasFilters
+                  ? "try removing some category filters or clearing them all."
+                  : "we couldn\u2019t find any places to meet in this area. try different addresses or locations that are closer together."}
               </p>
             </div>
-            <Button variant="outline" className="mt-2" onClick={onBack}>
-              try different addresses
-            </Button>
+            {hasFilters ? (
+              <div className="mt-2 flex flex-col items-center gap-2">
+                <Button variant="outline" onClick={onClearFilters}>
+                  clear filters
+                </Button>
+                <button
+                  className="text-sm text-muted-foreground underline underline-offset-2"
+                  onClick={onBack}
+                >
+                  try different addresses
+                </button>
+              </div>
+            ) : (
+              <Button variant="outline" className="mt-2" onClick={onBack}>
+                try different addresses
+              </Button>
+            )}
           </motion.div>
         ) : (
           <>
