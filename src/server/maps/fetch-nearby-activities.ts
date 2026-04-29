@@ -68,7 +68,7 @@ export async function fetchNearbyActivities(
       },
       body: JSON.stringify({
         includedTypes: types,
-        excludedTypes: ["travel_agency"],
+        excludedTypes: ["travel_agency", "spa", "massage", "beauty_salon"],
         maxResultCount: maxResults,
         locationRestriction: {
           circle: {
