@@ -56,21 +56,19 @@ export const Route = createRootRoute({
         content: "rgb(60, 133, 190)",
       },
       {
-        title: "meet me halfway",
+        title: "meet me halfway?",
       },
       {
         name: "description",
-        content:
-          "find the perfect meeting point based on actual driving time.",
+        content: "find the perfect meeting point based on actual driving time.",
       },
       {
         property: "og:title",
-        content: "meet me halfway",
+        content: "meet me halfway?",
       },
       {
         property: "og:description",
-        content:
-          "find the perfect meeting point based on actual driving time.",
+        content: "find the perfect meeting point based on actual driving time.",
       },
       {
         property: "og:type",
@@ -94,12 +92,11 @@ export const Route = createRootRoute({
       },
       {
         name: "twitter:title",
-        content: "meet me halfway",
+        content: "meet me halfway?",
       },
       {
         name: "twitter:description",
-        content:
-          "find the perfect meeting point based on actual driving time.",
+        content: "find the perfect meeting point based on actual driving time.",
       },
     ],
     links: [
