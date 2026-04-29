@@ -265,6 +265,10 @@ function BalloonLetter({
   const handlePointerDown = useCallback(
     (e: any) => {
       e.stopPropagation()
+      // Prevent browser from interpreting touch as scroll/pan/zoom
+      const nativeEvent = e.nativeEvent ?? e
+      nativeEvent.preventDefault?.()
+
       dragging.current = true
       didDrag.current = false
       snapVelocity.current.set(0, 0, 0)
@@ -277,6 +281,14 @@ function BalloonLetter({
       dragStartNDC.current = clientToNDC(clientX, clientY)
 
       document.body.style.cursor = "grabbing"
+
+      // Capture the pointer so move/up events route here even outside canvas
+      const pointerId: number | undefined =
+        e.nativeEvent?.pointerId ?? e.pointerId
+      const target = gl.domElement
+      if (pointerId != null && target.setPointerCapture) {
+        target.setPointerCapture(pointerId)
+      }
 
       const onMove = (ev: PointerEvent) => {
         const currentNDC = clientToNDC(ev.clientX, ev.clientY)
@@ -307,6 +319,15 @@ function BalloonLetter({
         document.body.style.cursor = "auto"
         window.removeEventListener("pointermove", onMove)
         window.removeEventListener("pointerup", onUp)
+        window.removeEventListener("pointercancel", onUp)
+        // Release pointer capture
+        if (pointerId != null && target.releasePointerCapture) {
+          try {
+            target.releasePointerCapture(pointerId)
+          } catch {
+            /* already released */
+          }
+        }
         if (!didDrag.current) {
           setJiggling(true)
           jiggleTime.current = 0
@@ -316,8 +337,9 @@ function BalloonLetter({
       // Attach to window so dragging works even outside the canvas
       window.addEventListener("pointermove", onMove)
       window.addEventListener("pointerup", onUp)
+      window.addEventListener("pointercancel", onUp)
     },
-    [clientToNDC, ndcToWorld, worldDeltaToLocal]
+    [clientToNDC, ndcToWorld, worldDeltaToLocal, gl]
   )
 
   return (
@@ -710,7 +732,7 @@ export function BalloonText({
       <Canvas
         gl={{ alpha: true, antialias: true }}
         camera={{ position: [0, 0, 10], fov: 40 }}
-        style={{ background: "transparent" }}
+        style={{ background: "transparent", touchAction: "none" }}
         dpr={[1, 2]}
       >
         <Suspense fallback={null}>
