@@ -16,8 +16,8 @@ export function PlaceCard({ place, driveTimes, onSelect }: PlaceCardProps) {
   const category = formatPlaceType(place.types[0])
   const rating = place.rating || 0
 
-  const driveDiff = computeDriveDiff(driveTimes)
-  const driveDiffLabel = driveDiff != null ? formatDriveDiff(driveDiff) : undefined
+  const avgDrive = computeAvgDrive(driveTimes)
+  const avgDriveLabel = avgDrive != null ? formatDuration(avgDrive) : undefined
 
   const firstPhoto = place.photos?.[0]
   const photoQuery = usePlacePhoto(firstPhoto)
@@ -71,12 +71,12 @@ export function PlaceCard({ place, driveTimes, onSelect }: PlaceCardProps) {
               </span>
             </>
           )}
-          {driveDiffLabel && (
+          {avgDriveLabel && (
             <>
               <span>·</span>
               <span className="flex-shrink-0 inline-flex items-center gap-0.5">
                 <Car className="size-3" />
-                ±{driveDiffLabel}
+                {avgDriveLabel}
               </span>
             </>
           )}
@@ -86,18 +86,17 @@ export function PlaceCard({ place, driveTimes, onSelect }: PlaceCardProps) {
   )
 }
 
-function computeDriveDiff(
+function computeAvgDrive(
   driveTimes?: Array<PlaceDriveTime>,
 ): number | undefined {
-  if (!driveTimes || driveTimes.length < 2) return undefined
+  if (!driveTimes || driveTimes.length === 0) return undefined
   const valid = driveTimes.filter((t) => t.durationSeconds > 0)
-  if (valid.length < 2) return undefined
-  const max = Math.max(...valid.map((t) => t.durationSeconds))
-  const min = Math.min(...valid.map((t) => t.durationSeconds))
-  return max - min
+  if (valid.length === 0) return undefined
+  const sum = valid.reduce((acc, t) => acc + t.durationSeconds, 0)
+  return sum / valid.length
 }
 
-function formatDriveDiff(seconds: number): string | undefined {
+function formatDuration(seconds: number): string | undefined {
   const minutes = Math.round(seconds / 60)
   if (minutes === 0) return undefined
   if (minutes < 60) return `${minutes} min`
