@@ -23,7 +23,6 @@ const DEFAULT_INCLUDED_TYPES = [
   "bowling_alley",
   "sports_complex",
   "park",
-  "spa",
   "gym",
   "zoo",
   "aquarium",
@@ -57,6 +56,18 @@ export async function fetchNearbyActivities(
 ): Promise<Array<Place> | Array<MinimalPlace>> {
   const types = includedTypes?.length ? includedTypes : DEFAULT_INCLUDED_TYPES
 
+  // Ensure excludedTypes never overlaps with includedTypes — the Google Places
+  // API rejects requests where a type appears in both lists (400 error).
+  const allExcluded = ["travel_agency", "spa", "massage", "beauty_salon"]
+  const typesSet = new Set(types)
+  const excludedTypes = allExcluded.filter((t) => !typesSet.has(t))
+
+  console.log(
+    `[fetchNearbyActivities] center=(${coordinates.latitude.toFixed(4)},${coordinates.longitude.toFixed(4)}) ` +
+      `includedTypes=${types.length} excludedTypes=[${excludedTypes.join(",")}] ` +
+      `maxResults=${maxResults} radius=${radiusMeters}m minimal=${minimal}`
+  )
+
   const response = await fetch(
     "https://places.googleapis.com/v1/places:searchNearby",
     {
@@ -68,7 +79,7 @@ export async function fetchNearbyActivities(
       },
       body: JSON.stringify({
         includedTypes: types,
-        excludedTypes: ["travel_agency", "spa", "massage", "beauty_salon"],
+        excludedTypes,
         maxResultCount: maxResults,
         locationRestriction: {
           circle: {
@@ -86,10 +97,17 @@ export async function fetchNearbyActivities(
 
   if (!response.ok) {
     const errorBody = await response.text()
+    console.error(
+      `[fetchNearbyActivities] API error ${response.status}: ${errorBody}`
+    )
     throw new Error(
       `Nearby activities search failed (${response.status}): ${errorBody}`
     )
   }
+
+  console.log(
+    `[fetchNearbyActivities] success, status=${response.status}`
+  )
 
   if (minimal) {
     const data = (await response.json()) as {
