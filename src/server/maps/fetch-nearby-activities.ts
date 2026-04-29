@@ -8,24 +8,55 @@ const MINIMAL_FIELD_MASK =
 
 const DEFAULT_RADIUS_METERS = 25000.0
 
+const DEFAULT_INCLUDED_TYPES = [
+  "restaurant",
+  "cafe",
+  "bar",
+  "bakery",
+  "shopping_mall",
+  "movie_theater",
+  "museum",
+  "art_gallery",
+  "amusement_park",
+  "night_club",
+  "tourist_attraction",
+  "bowling_alley",
+  "sports_complex",
+  "park",
+  "spa",
+  "gym",
+  "zoo",
+  "aquarium",
+  "library",
+  "casino",
+  "ice_skating_rink",
+  "dog_park",
+  "playground",
+]
+
 export async function fetchNearbyActivities(
   coordinates: Coordinates,
   maxResults: number,
   minimal: true,
-  radiusMeters?: number
+  radiusMeters?: number,
+  includedTypes?: Array<string>
 ): Promise<Array<MinimalPlace>>
 export async function fetchNearbyActivities(
   coordinates: Coordinates,
   maxResults?: number,
   minimal?: false,
-  radiusMeters?: number
+  radiusMeters?: number,
+  includedTypes?: Array<string>
 ): Promise<Array<Place>>
 export async function fetchNearbyActivities(
   coordinates: Coordinates,
   maxResults = 20,
   minimal = false,
-  radiusMeters = DEFAULT_RADIUS_METERS
+  radiusMeters = DEFAULT_RADIUS_METERS,
+  includedTypes?: Array<string>
 ): Promise<Array<Place> | Array<MinimalPlace>> {
+  const types = includedTypes?.length ? includedTypes : DEFAULT_INCLUDED_TYPES
+
   const response = await fetch(
     "https://places.googleapis.com/v1/places:searchNearby",
     {
@@ -36,31 +67,7 @@ export async function fetchNearbyActivities(
         "X-Goog-FieldMask": minimal ? MINIMAL_FIELD_MASK : FULL_FIELD_MASK,
       },
       body: JSON.stringify({
-        includedTypes: [
-          "restaurant",
-          "cafe",
-          "bar",
-          "bakery",
-          "shopping_mall",
-          "movie_theater",
-          "museum",
-          "art_gallery",
-          "amusement_park",
-          "night_club",
-          "tourist_attraction",
-          "bowling_alley",
-          "sports_complex",
-          "park",
-          "spa",
-          "gym",
-          "zoo",
-          "aquarium",
-          "library",
-          "casino",
-          "ice_skating_rink",
-          "dog_park",
-          "playground",
-        ],
+        includedTypes: types,
         maxResultCount: maxResults,
         locationRestriction: {
           circle: {

@@ -1,12 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { APIProvider } from "@vis.gl/react-google-maps"
 import { AnimatePresence, motion } from "framer-motion"
 import { MapPin, SearchX } from "lucide-react"
 import type { Place } from "@/server/maps/types"
+import { ALL_CATEGORY_IDS } from "@/server/maps/venue-categories"
+import type { Coordinates } from "@/server/maps/types"
 import { Button } from "@/components/ui/button"
 import { useSearch } from "@/hooks/use-maps"
 import { CloudBackground } from "@/components/clouds"
+import { CategoryFilter } from "@/components/results/category-filter"
 import { ResultsHeader } from "@/components/results/results-header"
 import { MiniMap } from "@/components/results/mini-map"
 import { PlaceCard } from "@/components/results/place-card"
@@ -14,11 +17,13 @@ import { PlaceDetailSheet } from "@/components/results/place-detail-sheet"
 
 type SearchParams = {
   placeIds: string
+  categories?: string
 }
 
 export const Route = createFileRoute("/results")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
     placeIds: (search.placeIds as string) || "",
+    categories: (search.categories as string) || undefined,
   }),
   component: ResultsPage,
 })
@@ -31,12 +36,43 @@ const LOADING_MESSAGES = [
 ]
 
 function ResultsPage() {
-  const { placeIds: placeIdsParam } = Route.useSearch()
+  const { placeIds: placeIdsParam, categories: categoriesParam } =
+    Route.useSearch()
   const placeIds = placeIdsParam ? placeIdsParam.split(",") : []
-  const searchResult = useSearch(placeIds)
+  const midpointRef = useRef<Coordinates | undefined>(undefined)
+
+  // Pass cached midpoint when filtering (skip optimization loop)
+  const categories = categoriesParam ? categoriesParam.split(",") : undefined
+  const midpointForQuery = categories ? midpointRef.current : undefined
+
+  const searchResult = useSearch(placeIds, categories, midpointForQuery)
   const navigate = useNavigate()
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
+
+  // Cache the midpoint from the first successful search
+  useEffect(() => {
+    if (searchResult.data?.midpoint && !midpointRef.current) {
+      midpointRef.current = searchResult.data.midpoint
+    }
+  }, [searchResult.data?.midpoint])
+
+  // Derive selected categories from URL param (absent = all selected)
+  const selectedCategories = new Set(
+    categoriesParam ? categoriesParam.split(",") : ALL_CATEGORY_IDS
+  )
+
+  const handleApplyCategories = (categories: Set<string>) => {
+    const newCategories =
+      categories.size === ALL_CATEGORY_IDS.length
+        ? undefined
+        : Array.from(categories).join(",")
+    navigate({
+      to: "/results",
+      search: { placeIds: placeIdsParam, categories: newCategories },
+      replace: true,
+    })
+  }
 
   useEffect(() => {
     if (!placeIdsParam) {
@@ -59,6 +95,8 @@ function ResultsPage() {
             setSelectedPlace={setSelectedPlace}
             isMapExpanded={isMapExpanded}
             setIsMapExpanded={setIsMapExpanded}
+            selectedCategories={selectedCategories}
+            onApplyCategories={handleApplyCategories}
             onBack={() => navigate({ to: "/" })}
           />
         )}
@@ -175,6 +213,8 @@ function ResultsContent({
   setSelectedPlace,
   isMapExpanded,
   setIsMapExpanded,
+  selectedCategories,
+  onApplyCategories,
   onBack,
 }: {
   data: NonNullable<ReturnType<typeof useSearch>["data"]>
@@ -182,6 +222,8 @@ function ResultsContent({
   setSelectedPlace: (place: Place | null) => void
   isMapExpanded: boolean
   setIsMapExpanded: (expanded: boolean) => void
+  selectedCategories: Set<string>
+  onApplyCategories: (categories: Set<string>) => void
   onBack: () => void
 }) {
   const cityName = data.snap?.cityName || "Midpoint"
@@ -254,7 +296,7 @@ function ResultsContent({
           <>
             {/* Section header — fades up */}
             <motion.div
-              className="mb-4 flex items-end justify-between"
+              className="mb-4 flex items-start justify-between"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -271,6 +313,10 @@ function ResultsContent({
                   {filteredPlaces.length} spots found nearby
                 </p>
               </div>
+              <CategoryFilter
+                selected={selectedCategories}
+                onApply={onApplyCategories}
+              />
             </motion.div>
 
             {/* Place cards — staggered entrance */}

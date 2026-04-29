@@ -50,11 +50,15 @@ export function useAutocomplete(input: string, options?: AutocompleteOptions) {
   }
 }
 
-export function useSearch(placeIds: Array<string>) {
+export function useSearch(
+  placeIds: Array<string>,
+  categories?: Array<string>,
+  midpoint?: Coordinates
+) {
   return useQuery<SearchResult>({
     enabled: placeIds.length >= 2,
-    queryKey: ["search", placeIds],
-    queryFn: () => search({ data: { placeIds } }),
+    queryKey: ["search", placeIds, categories, midpoint],
+    queryFn: () => search({ data: { placeIds, categories, midpoint } }),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

@@ -6,6 +6,7 @@ import { fetchNearbyCities } from "./fetch-nearby-cities"
 import { fetchPlaceDetails } from "./fetch-place-details"
 import { fetchRouteMatrix } from "./fetch-route-matrix"
 import { snapMidpointToPopulatedArea } from "./snap-midpoint"
+import { VENUE_CATEGORIES } from "./venue-categories"
 import type { RouteMatrixResult } from "./fetch-route-matrix"
 import type {
   ConvergenceThresholds,
@@ -303,7 +304,95 @@ function scoreCandidates(
 
 export async function searchHandler(data: {
   placeIds: Array<string>
+  categories?: Array<string>
+  midpoint?: Coordinates
 }): Promise<SearchResult> {
+  // Resolve category IDs to Google Place types
+  const includedTypes = data.categories?.length
+    ? VENUE_CATEGORIES.filter((c) => data.categories!.includes(c.id)).flatMap(
+        (c) => c.types
+      )
+    : undefined
+
+  // If a midpoint is provided, skip the optimization loop and just fetch venues
+  if (data.midpoint) {
+    const details = await Promise.all(
+      data.placeIds.map((placeId) => fetchPlaceDetails(placeId))
+    )
+    const coordinates: Array<Coordinates> = details.map((d) => ({
+      latitude: d.location.latitude,
+      longitude: d.location.longitude,
+    }))
+    const origins = details.map((d) => {
+      const components = d.addressComponents ?? []
+      const locality =
+        components.find((c) => c.types.includes("locality"))?.longText ??
+        components.find((c) => c.types.includes("sublocality"))?.longText ??
+        components.find((c) =>
+          c.types.includes("administrative_area_level_2")
+        )?.longText ??
+        "unknown"
+      return {
+        locality,
+        coordinates: {
+          latitude: d.location.latitude,
+          longitude: d.location.longitude,
+        },
+      }
+    })
+
+    const finalPlaces = await fetchNearbyActivities(
+      data.midpoint,
+      15,
+      false,
+      undefined,
+      includedTypes
+    )
+
+    const driveTimes: Record<string, Array<PlaceDriveTime>> = {}
+    if (finalPlaces.length > 0) {
+      const destinationPlaceIds = finalPlaces.map((p) => p.id)
+      const routes = await fetchRouteMatrix(data.placeIds, destinationPlaceIds)
+
+      for (let d = 0; d < finalPlaces.length; d++) {
+        const placeId = finalPlaces[d].id
+        const times: Array<PlaceDriveTime> = []
+
+        for (let o = 0; o < data.placeIds.length; o++) {
+          const route = routes.find(
+            (r) => r.originIndex === o && r.destinationIndex === d
+          )
+          if (route?.duration && route.condition === "ROUTE_EXISTS") {
+            times.push({
+              durationSeconds: parseInt(route.duration.replace("s", "")),
+              distanceMeters: route.distanceMeters ?? 0,
+            })
+          } else {
+            times.push({ durationSeconds: 0, distanceMeters: 0 })
+          }
+        }
+
+        driveTimes[placeId] = times
+      }
+    }
+
+    return {
+      coordinates,
+      origins,
+      midpoint: data.midpoint,
+      places: finalPlaces,
+      driveTimes,
+      iterations: [],
+      performance: {
+        foundOnIteration: 0,
+        timeDifference: 0,
+        percentageDiff: 0,
+        thresholds: { ...DEFAULT_THRESHOLDS },
+      },
+      snap: undefined,
+    }
+  }
+
   const iterations: Array<IterationResult> = []
   let bestIterationIndex = 0
   let thresholds: ConvergenceThresholds = { ...DEFAULT_THRESHOLDS }
@@ -418,7 +507,8 @@ export async function searchHandler(data: {
       currentMidpoint,
       iterCandidateCount,
       true,
-      iterSearchRadius
+      iterSearchRadius,
+      includedTypes
     )
 
     // Track which search center each candidate came from
@@ -429,7 +519,9 @@ export async function searchHandler(data: {
     if (isMultiPerson && explorationPoints.length > 0) {
       // On first iteration, explore all pairwise midpoints
       const explorationResults = await Promise.all(
-        explorationPoints.map((point) => fetchNearbyActivities(point, 4, true))
+        explorationPoints.map((point) =>
+          fetchNearbyActivities(point, 4, true, undefined, includedTypes)
+        )
       )
       for (let e = 0; e < explorationResults.length; e++) {
         for (const place of explorationResults[e]) {
@@ -741,7 +833,13 @@ export async function searchHandler(data: {
   }
 
   // Use the best midpoint found for final venue search
-  const finalPlaces = await fetchNearbyActivities(bestMidpoint, 15)
+  const finalPlaces = await fetchNearbyActivities(
+    bestMidpoint,
+    15,
+    false,
+    undefined,
+    includedTypes
+  )
 
   // Compute per-person drive times to each final place
   const driveTimes: Record<string, Array<PlaceDriveTime>> = {}
@@ -807,7 +905,11 @@ export async function searchHandler(data: {
 
 export const search = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => {
-    const data = input as { placeIds: Array<string> }
+    const data = input as {
+      placeIds: Array<string>
+      categories?: Array<string>
+      midpoint?: Coordinates
+    }
     if (!Array.isArray(data.placeIds) || data.placeIds.length < 2) {
       throw new Error("At least 2 place IDs are required")
     }
