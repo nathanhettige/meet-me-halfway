@@ -17,6 +17,10 @@ type MiniMapProps = {
   isExpanded: boolean
   onToggleExpand: () => void
   onPlaceSelect: (place: Place) => void
+  /** Override container class for desktop full-height mode */
+  className?: string
+  /** Hide expand/collapse toggle (used on desktop) */
+  hideToggle?: boolean
 }
 
 export function MiniMap({
@@ -26,6 +30,8 @@ export function MiniMap({
   isExpanded,
   onToggleExpand,
   onPlaceSelect,
+  className,
+  hideToggle = false,
 }: MiniMapProps) {
   const map = useMap()
 
@@ -48,11 +54,16 @@ export function MiniMap({
   }, [map, coordinates, midpoint, places])
 
   return (
-    <div className="relative overflow-hidden">
+    <div className={cn("relative overflow-hidden", className)}>
       <div
         className={cn(
-          "w-full overflow-hidden transition-all duration-700 ease-out",
-          isExpanded ? "h-80" : "h-48"
+          "w-full overflow-hidden",
+          className
+            ? "h-full"
+            : cn(
+                "transition-all duration-700 ease-out",
+                isExpanded ? "h-80" : "h-48"
+              )
         )}
       >
         <Map
@@ -113,23 +124,25 @@ export function MiniMap({
         <span>{coordinates.length} starting points</span>
       </div>
 
-      {/* Expand/collapse toggle */}
-      <button
-        onClick={onToggleExpand}
-        className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm"
-      >
-        {isExpanded ? (
-          <>
-            <ChevronUp className="h-4 w-4" />
-            <span>Collapse map</span>
-          </>
-        ) : (
-          <>
-            <ChevronDown className="h-4 w-4" />
-            <span>Expand map</span>
-          </>
-        )}
-      </button>
+      {/* Expand/collapse toggle — hidden on desktop */}
+      {!hideToggle && (
+        <button
+          onClick={onToggleExpand}
+          className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-4 w-4" />
+              <span>Collapse map</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4" />
+              <span>Expand map</span>
+            </>
+          )}
+        </button>
+      )}
     </div>
   )
 }

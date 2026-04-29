@@ -1,15 +1,4 @@
 import { useState } from "react"
-import type { Coordinates, Place, PlaceDriveTime } from "@/server/maps/types"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
-import { Star } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { usePlacePhotos } from "@/hooks/use-maps"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   Car,
@@ -19,7 +8,18 @@ import {
   MapPin,
   MessageSquareText,
   Navigation,
+  Star,
 } from "lucide-react"
+import type { Coordinates, Place, PlaceDriveTime } from "@/server/maps/types"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
+import { usePlacePhotos } from "@/hooks/use-maps"
 
 type Origin = {
   locality: string
@@ -280,7 +280,7 @@ function OpeningHours({
               {statusLabel.label}
             </span>
           )}
-          {weekdayDescriptions && weekdayDescriptions.length > 0 && (
+          {weekdayDescriptions.length > 0 && (
             <motion.div
               animate={{ rotate: expanded ? 180 : 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
@@ -292,7 +292,7 @@ function OpeningHours({
       </button>
 
       <AnimatePresence initial={false}>
-        {expanded && weekdayDescriptions && weekdayDescriptions.length > 0 && (
+        {expanded && weekdayDescriptions.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}

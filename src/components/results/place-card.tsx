@@ -25,7 +25,7 @@ export function PlaceCard({ place, driveTimes, onSelect }: PlaceCardProps) {
   return (
     <div className="group cursor-pointer" onClick={onSelect}>
       {/* Photo card */}
-      <div className="relative h-36 w-full overflow-hidden rounded-2xl bg-muted shadow-md transition-transform duration-300 active:scale-[0.98]">
+      <div className="relative h-36 w-full overflow-hidden rounded-2xl bg-muted shadow-md transition-all duration-300 active:scale-[0.98] md:group-hover:shadow-lg">
         {photoQuery.data ? (
           <img
             src={photoQuery.data}
