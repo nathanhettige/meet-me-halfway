@@ -56,7 +56,50 @@ export const Route = createRootRoute({
         content: "rgb(60, 133, 190)",
       },
       {
-        title: "Meet Me Halfway",
+        title: "meet me halfway",
+      },
+      {
+        name: "description",
+        content:
+          "find the perfect meeting point based on actual driving time.",
+      },
+      {
+        property: "og:title",
+        content: "meet me halfway",
+      },
+      {
+        property: "og:description",
+        content:
+          "find the perfect meeting point based on actual driving time.",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:url",
+        content: "https://meet-me-halfway.app",
+      },
+      {
+        property: "og:image",
+        content: "https://meet-me-halfway.app/screenshot.png",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:image",
+        content: "https://meet-me-halfway.app/screenshot.png",
+      },
+      {
+        name: "twitter:title",
+        content: "meet me halfway",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "find the perfect meeting point based on actual driving time.",
       },
     ],
     links: [
