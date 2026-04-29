@@ -4,7 +4,6 @@ import { APIProvider } from "@vis.gl/react-google-maps"
 import { AnimatePresence, motion } from "framer-motion"
 import { MapPin, SearchX } from "lucide-react"
 import type { Place } from "@/server/maps/types"
-import { ALL_CATEGORY_IDS } from "@/server/maps/venue-categories"
 import type { Coordinates } from "@/server/maps/types"
 import { Button } from "@/components/ui/button"
 import { useSearch } from "@/hooks/use-maps"
@@ -57,16 +56,13 @@ function ResultsPage() {
     }
   }, [searchResult.data?.midpoint])
 
-  // Derive selected categories from URL param (absent = all selected)
+  // Derive selected categories from URL param (absent = no filter applied)
   const selectedCategories = new Set(
-    categoriesParam ? categoriesParam.split(",") : ALL_CATEGORY_IDS
+    categoriesParam ? categoriesParam.split(",") : []
   )
 
   const handleApplyCategories = (categories: Set<string>) => {
-    const newCategories =
-      categories.size === ALL_CATEGORY_IDS.length
-        ? undefined
-        : Array.from(categories).join(",")
+    const newCategories = Array.from(categories).join(",")
     navigate({
       to: "/results",
       search: { placeIds: placeIdsParam, categories: newCategories },

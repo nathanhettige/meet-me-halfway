@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Check } from "lucide-react"
 import {
   ALL_CATEGORY_IDS,
   VENUE_CATEGORIES,
@@ -22,7 +23,6 @@ export function CategoryFilter({ selected, onApply }: CategoryFilterProps) {
     () => new Set(selected)
   )
 
-  const allSelected = selected.size === ALL_CATEGORY_IDS.length
   const noneSelected = selected.size === 0
   const count = selected.size
 
@@ -55,7 +55,7 @@ export function CategoryFilter({ selected, onApply }: CategoryFilterProps) {
           setOpen(true)
         }}
       >
-        {allSelected || noneSelected ? "filter" : `filter (${count})`}
+        {noneSelected ? "filter" : `filter (${count})`}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent showCloseButton={false} className="max-w-56">
@@ -72,14 +72,15 @@ export function CategoryFilter({ selected, onApply }: CategoryFilterProps) {
                   type="button"
                   onClick={() => handleToggle(category.id)}
                   className={cn(
-                    "flex w-full items-center justify-center gap-2 rounded-full text-sm transition-all",
+                    "flex w-full items-center gap-2 rounded-full border px-3 py-1.5 text-sm",
                     isSelected
-                      ? "border-2 border-sky-blue px-2.5 py-1 font-semibold text-sky-blue"
-                      : "border border-border bg-background px-3 py-1.5 font-medium text-muted-foreground hover:bg-accent"
+                      ? "border-sky-blue font-medium text-sky-blue"
+                      : "border-border bg-background font-medium text-muted-foreground hover:bg-accent"
                   )}
                 >
                   <Icon className="size-3.5" />
-                  {category.label}
+                  <span className="flex-1 text-left">{category.label}</span>
+                  {isSelected && <Check className="size-3.5" />}
                 </button>
               )
             })}
@@ -102,7 +103,6 @@ export function CategoryFilter({ selected, onApply }: CategoryFilterProps) {
               size="sm"
               className="bg-sky-blue text-white hover:bg-sky-blue-dark"
               onClick={handleApply}
-              disabled={localSelected.size === 0}
             >
               apply
             </Button>
